@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto py-16 px-6">
+
+    <h2 class="text-4xl font-bold text-center mb-12">
+        Find the Right Lawyer for You
+    </h2>
+
+    <!-- Search Bar -->
+    <form method="GET" class="mb-12 text-center">
+        <input type="text" name="q"
+               placeholder="Search by specialization..."
+               class="w-1/2 px-4 py-3 border rounded-xl shadow-sm">
+        <button type="submit"
+                class="bg-blue-600 text-white px-6 py-3 rounded-xl ml-2">
+            Search
+        </button>
+    </form>
+
+    {% if lawyers %}
+        <div class="grid md:grid-cols-3 gap-8">
+            {% for lawyer in lawyers %}
+                <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition">
+
+                    <div class="mb-4">
+                        <h3 class="text-xl font-bold">
+                            {{ lawyer.user.username }}
+                        </h3>
+                        <p class="text-blue-600 font-semibold">
+                            {{ lawyer.specialization }}
+                        </p>
+                        <p class="text-gray-500 text-sm">
+                            {{ lawyer.experience }} years experience
+                        </p>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-6">
+                        <span class="text-green-600 font-semibold">
+                            Available
+                        </span>
+
+                        <a href="/lawyers/{{ lawyer.id }}/"
+                           class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+                            View Profile
+                        </a>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-gray-500">
+            No lawyers found.
+        </p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

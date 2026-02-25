@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- HERO SECTION -->
+<section class="bg-gradient-to-r from-blue-700 to-indigo-700 text-white py-28">
+    <div class="max-w-6xl mx-auto text-center px-6">
+
+        <h1 class="text-5xl font-bold mb-6">
+            India's Trusted Legal Consultation Platform
+        </h1>
+
+        <p class="text-xl mb-10">
+            Connect with verified lawyers across all legal categories.
+        </p>
+
+        <form action="/lawyers/" method="GET" class="flex justify-center">
+            <input type="text" name="q"
+                   placeholder="Search lawyers by specialization..."
+                   class="w-1/2 px-6 py-4 rounded-l-xl text-black">
+
+            <button type="submit"
+                    class="bg-yellow-400 text-black px-8 py-4 rounded-r-xl font-semibold">
+                Search
+            </button>
+        </form>
+
+    </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="py-20 bg-gray-100">
+    <div class="max-w-6xl mx-auto px-6">
+
+        <h2 class="text-3xl font-bold text-center mb-12">
+            Popular Legal Categories
+        </h2>
+
+        <div class="grid md:grid-cols-4 gap-8 text-center">
+
+            <div class="bg-white p-8 rounded-2xl shadow hover:shadow-xl transition">
+                <h3 class="font-semibold text-lg">Criminal Law</h3>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow hover:shadow-xl transition">
+                <h3 class="font-semibold text-lg">Family Law</h3>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow hover:shadow-xl transition">
+                <h3 class="font-semibold text-lg">Corporate Law</h3>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow hover:shadow-xl transition">
+                <h3 class="font-semibold text-lg">Property Law</h3>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="py-20">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+
+        <h2 class="text-3xl font-bold mb-12">
+            How LegalConnect Works
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-10">
+
+            <div>
+                <div class="text-4xl mb-4">🔎</div>
+                <h3 class="font-semibold text-xl mb-2">Search Lawyer</h3>
+                <p class="text-gray-600">
+                    Browse lawyers by category and expertise.
+                </p>
+            </div>
+
+            <div>
+                <div class="text-4xl mb-4">📅</div>
+                <h3 class="font-semibold text-xl mb-2">Book Consultation</h3>
+                <p class="text-gray-600">
+                    Send consultation request instantly.
+                </p>
+            </div>
+
+            <div>
+                <div class="text-4xl mb-4">⚖️</div>
+                <h3 class="font-semibold text-xl mb-2">Resolve Your Case</h3>
+                <p class="text-gray-600">
+                    Get professional legal advice.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="bg-blue-600 text-white py-16 text-center">
+    <h2 class="text-3xl font-bold mb-6">
+        Need Legal Help Today?
+    </h2>
+
+    <a href="/lawyers/"
+       class="bg-white text-blue-600 px-8 py-3 rounded-xl font-semibold">
+        Find a Lawyer
+    </a>
+</section>
+
+{% endblock %}

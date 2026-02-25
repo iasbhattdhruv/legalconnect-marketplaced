@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LegalConnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+<nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="/" class="text-2xl font-bold text-blue-600">
+            LegalConnect
+        </a>
+
+        <div class="space-x-6">
+            {% if user.is_authenticated %}
+                <a href="/dashboard/" class="text-gray-700 hover:text-blue-600">Dashboard</a>
+                <a href="/logout/" class="bg-red-500 text-white px-4 py-2 rounded-lg">Logout</a>
+            {% else %}
+                <a href="/login/" class="text-gray-700 hover:text-blue-600">Login</a>
+                <a href="/register/" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Register</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+{% block content %}
+{% endblock %}
+
+<footer class="bg-gray-900 text-white text-center py-6 mt-20">
+    © 2026 LegalConnect. All rights reserved.
+</footer>
+
+</body>
+</html>
