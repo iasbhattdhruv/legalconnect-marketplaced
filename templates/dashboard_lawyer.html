@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto py-16 px-6">
+
+    <h2 class="text-3xl font-bold mb-10">
+        Consultation Requests
+    </h2>
+
+    {% if appointments %}
+        <div class="space-y-6">
+            {% for appointment in appointments %}
+                <div class="bg-white p-6 rounded-2xl shadow">
+
+                    <p><strong>Client:</strong> {{ appointment.client.username }}</p>
+                    <p><strong>Message:</strong> {{ appointment.message }}</p>
+                    <p><strong>Status:</strong> {{ appointment.status }}</p>
+
+                    {% if appointment.status == 'pending' %}
+                        <div class="mt-4 space-x-4">
+                            <a href="/appointment/{{ appointment.id }}/accept/"
+                               class="bg-green-600 text-white px-4 py-2 rounded-lg">
+                                Accept
+                            </a>
+
+                            <a href="/appointment/{{ appointment.id }}/reject/"
+                               class="bg-red-600 text-white px-4 py-2 rounded-lg">
+                                Reject
+                            </a>
+                        </div>
+                    {% endif %}
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No consultation requests.</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

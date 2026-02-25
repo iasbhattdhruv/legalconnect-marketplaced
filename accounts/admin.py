@@ -4,11 +4,10 @@ from .models import Profile, Appointment
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'user_type', 'specialization', 'experience', 'location')
-    list_filter = ('user_type',)
-    search_fields = ('user__username',)
+    list_display = ('user', 'user_type', 'specialization', 'experience', 'consultation_fee')
 
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ('client', 'lawyer', 'created_at')
+    list_display = ('client', 'lawyer', 'appointment_date', 'appointment_time', 'status')
+    list_filter = ('status',)
