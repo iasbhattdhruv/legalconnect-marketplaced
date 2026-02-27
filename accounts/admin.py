@@ -4,7 +4,7 @@ from .models import Profile, Appointment
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'user_type', 'specialization', 'experience', 'consultation_fee')
+    list_display = ('user', 'user_type', 'specialization', 'experience', 'consultation_fee', 'is_available')
 
 
 @admin.register(Appointment)

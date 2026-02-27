@@ -15,11 +15,12 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES)
 
-    # Lawyer extra fields
     specialization = models.CharField(max_length=100, blank=True, null=True)
     experience = models.IntegerField(blank=True, null=True)
     consultation_fee = models.IntegerField(blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
+
+    is_available = models.BooleanField(default=True)   # 👈 ADD THIS
 
     def __str__(self):
         return self.user.username

@@ -2,44 +2,76 @@
 
 {% block content %}
 
-<div class="max-w-3xl mx-auto mt-16 bg-white p-10 rounded-2xl shadow-lg">
+<div class="max-w-3xl mx-auto py-16 px-6">
 
-    <h2 class="text-3xl font-bold mb-6">
-        Book Appointment with {{ lawyer.user.username }}
-    </h2>
+    <div class="bg-white p-10 rounded-3xl shadow-xl">
 
-    <form method="POST">
-        {% csrf_token %}
+        <h2 class="text-3xl font-bold mb-8">
+            Book Consultation with {{ lawyer.user.username }}
+        </h2>
 
-        <div class="mb-4">
-            <label class="block mb-2 font-semibold">Select Date</label>
-            <input type="date" name="date"
-                   class="w-full border px-4 py-2 rounded-lg"
-                   required>
-        </div>
+        <form method="POST">
+            {% csrf_token %}
 
-        <div class="mb-4">
-            <label class="block mb-2 font-semibold">Select Time</label>
-            <input type="time" name="time"
-                   class="w-full border px-4 py-2 rounded-lg"
-                   required>
-        </div>
+            <!-- Date Selection -->
+            <div class="mb-6">
+                <label class="block mb-2 font-semibold">
+                    Select Date
+                </label>
+                <input type="date"
+                       name="date"
+                       required
+                       min="{{ today }}"
+                       class="w-full border px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
 
-        <div class="mb-6">
-            <label class="block mb-2 font-semibold">Message</label>
-            <textarea name="message"
-                      class="w-full border px-4 py-2 rounded-lg"
-                      rows="4"
-                      placeholder="Describe your legal issue..."
-                      required></textarea>
-        </div>
+            <!-- Time Selection -->
+            <div class="mb-6">
+                <label class="block mb-2 font-semibold">
+                    Select Time Slot
+                </label>
 
-        <button type="submit"
-                class="bg-blue-600 text-white px-6 py-3 rounded-lg">
-            Confirm Booking
-        </button>
+                <select name="time"
+                        required
+                        class="w-full border px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
 
-    </form>
+                    <option value="">Select Time</option>
+
+                    <!-- VALUE = 24 hour format (Database) -->
+                    <!-- TEXT = 12 hour format (User View) -->
+
+                    <option value="09:00">09:00 AM</option>
+                    <option value="10:00">10:00 AM</option>
+                    <option value="11:00">11:00 AM</option>
+                    <option value="12:00">12:00 PM</option>
+                    <option value="14:00">02:00 PM</option>
+                    <option value="15:00">03:00 PM</option>
+                    <option value="16:00">04:00 PM</option>
+                    <option value="17:00">05:00 PM</option>
+
+                </select>
+            </div>
+
+            <!-- Optional Message -->
+            <div class="mb-6">
+                <label class="block mb-2 font-semibold">
+                    Message (Optional)
+                </label>
+                <textarea name="message"
+                          rows="4"
+                          placeholder="Briefly describe your legal issue..."
+                          class="w-full border px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl transition duration-200">
+                Confirm Booking
+            </button>
+
+        </form>
+
+    </div>
 
 </div>
 

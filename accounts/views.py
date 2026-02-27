@@ -82,13 +82,38 @@ def dashboard_view(request):
     profile = request.user.profile
 
     if profile.user_type == 'lawyer':
-        appointments = Appointment.objects.filter(lawyer=request.user).order_by('-created_at')
+        appointments = Appointment.objects.filter(
+            lawyer=request.user
+        ).order_by('-created_at')
+
+        total = appointments.count()
+        pending = appointments.filter(status='pending').count()
+        accepted = appointments.filter(status='accepted').count()
+        rejected = appointments.filter(status='rejected').count()
+
+        revenue = 0
+        if profile.consultation_fee:
+            revenue = accepted * profile.consultation_fee
+
     else:
-        appointments = Appointment.objects.filter(client=request.user).order_by('-created_at')
+        appointments = Appointment.objects.filter(
+            client=request.user
+        ).order_by('-created_at')
+
+        total = appointments.count()
+        pending = appointments.filter(status='pending').count()
+        accepted = appointments.filter(status='accepted').count()
+        rejected = appointments.filter(status='rejected').count()
+        revenue = None
 
     context = {
         'profile': profile,
-        'appointments': appointments
+        'appointments': appointments,
+        'total': total,
+        'pending': pending,
+        'accepted': accepted,
+        'rejected': rejected,
+        'revenue': revenue
     }
 
     return render(request, 'dashboard.html', context)
@@ -106,8 +131,11 @@ def lawyer_list_view(request):
 
 
 # ======================
+# ======================
 # BOOK APPOINTMENT
 # ======================
+from datetime import date, datetime
+
 @login_required
 def book_appointment_view(request, lawyer_id):
 
@@ -116,21 +144,48 @@ def book_appointment_view(request, lawyer_id):
     if request.method == 'POST':
 
         message = request.POST.get('message')
-        date = request.POST.get('date')
-        time = request.POST.get('time')
+        appointment_date = request.POST.get('date')
+        time_input = request.POST.get('time')
+
+        # ✅ Convert time properly (handles both 05:00 PM and 17:00)
+        try:
+            if "AM" in time_input or "PM" in time_input:
+                appointment_time = datetime.strptime(time_input, "%I:%M %p").time()
+            else:
+                appointment_time = datetime.strptime(time_input, "%H:%M").time()
+        except:
+            messages.error(request, "Invalid time format.")
+            return redirect(f'/book/{lawyer_id}/')
+
+        # Check if slot already accepted
+        existing = Appointment.objects.filter(
+            lawyer=lawyer_profile.user,
+            appointment_date=appointment_date,
+            appointment_time=appointment_time,
+            status='accepted'
+        ).exists()
+
+        if existing:
+            messages.error(request, "This slot is already booked.")
+            return redirect(f'/book/{lawyer_id}/')
 
         Appointment.objects.create(
             client=request.user,
             lawyer=lawyer_profile.user,
             message=message,
-            appointment_date=date,
-            appointment_time=time
+            appointment_date=appointment_date,
+            appointment_time=appointment_time
         )
 
         messages.success(request, "Appointment booked successfully.")
         return redirect('/dashboard/')
 
-    return render(request, 'book_appointment.html', {'lawyer': lawyer_profile})
+    context = {
+        'lawyer': lawyer_profile,
+        'today': date.today()
+    }
+
+    return render(request, 'book_appointment.html', context)
 # ======================
 # ACCEPT APPOINTMENT
 # ======================
@@ -165,6 +220,15 @@ def reject_appointment(request, appointment_id):
 @login_required
 def lawyer_detail_view(request, lawyer_id):
 
-    lawyer = get_object_or_404(Profile, id=lawyer_id, user_type='lawyer')
+    lawyer_profile = get_object_or_404(Profile, id=lawyer_id, user_type='lawyer')
 
-    return render(request, 'lawyer_detail.html', {'lawyer': lawyer})
+    client_profile = None
+    if hasattr(request.user, 'profile'):
+        client_profile = request.user.profile
+
+    context = {
+        'lawyer': lawyer_profile,
+        'client_profile': client_profile
+    }
+
+    return render(request, 'lawyer_detail.html', context)
