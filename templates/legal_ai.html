@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="max-w-4xl mx-auto py-16 px-6">
+
+<div class="bg-white shadow-xl rounded-3xl p-10">
+
+<h1 class="text-4xl font-bold mb-6 text-center">
+⚖️ AI Legal Assistant
+</h1>
+
+<p class="text-gray-600 text-center mb-10">
+Describe your legal problem and get quick guidance and recommended lawyers.
+</p>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<textarea
+name="problem"
+rows="5"
+placeholder="Example: My tenant is not vacating my property..."
+class="w-full border p-4 rounded-xl mb-6"
+required
+></textarea>
+
+<div class="text-center">
+
+<button class="bg-blue-600 text-white px-8 py-3 rounded-xl text-lg">
+Get Legal Guidance
+</button>
+
+</div>
+
+</form>
+
+{% if advice %}
+
+<div class="mt-12 bg-blue-50 p-6 rounded-xl">
+
+<h2 class="text-2xl font-semibold mb-3">
+AI Legal Advice
+</h2>
+
+<p class="text-gray-700">
+{{ advice }}
+</p>
+
+</div>
+
+{% endif %}
+
+{% if recommended_lawyers %}
+
+<div class="mt-12">
+
+<h2 class="text-2xl font-semibold mb-6">
+Recommended Lawyers
+</h2>
+
+<div class="grid grid-cols-2 gap-6">
+
+{% for lawyer in recommended_lawyers %}
+
+<div class="border p-6 rounded-xl shadow">
+
+<h3 class="text-xl font-bold">
+{{ lawyer.user.username }}
+</h3>
+
+<p class="text-gray-600">
+{{ lawyer.specialization }}
+</p>
+
+<p class="mt-2">
+Experience: {{ lawyer.experience }} years
+</p>
+
+<p class="mt-2 font-semibold text-blue-600">
+₹{{ lawyer.consultation_fee }}
+</p>
+
+<a href="/lawyers/{{ lawyer.id }}/"
+class="block mt-4 bg-blue-600 text-white text-center py-2 rounded">
+View Profile
+</a>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+{% endblock %}

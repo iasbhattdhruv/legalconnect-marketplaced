@@ -4,7 +4,8 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Profile, Appointment
-
+from django.db import IntegrityError
+from datetime import date
 
 # ======================
 # HOME
@@ -13,6 +14,7 @@ def home_view(request):
     return render(request, 'home.html')
 
 
+# ======================
 # ======================
 # REGISTER
 # ======================
@@ -25,6 +27,10 @@ def register_view(request):
         password = request.POST.get('password')
         user_type = request.POST.get('user_type')
 
+        gender = request.POST.get('gender')
+        birthdate = request.POST.get('birthdate')
+        profession = request.POST.get('profession')
+
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists.")
             return redirect('/register/')
@@ -35,15 +41,18 @@ def register_view(request):
             password=password
         )
 
+        # IMPORTANT: Update profile AFTER creation
         profile = user.profile
         profile.user_type = user_type
+        profile.gender = gender
+        profile.birthdate = birthdate
+        profile.profession = profession
         profile.save()
 
         login(request, user)
         return redirect('/dashboard/')
 
     return render(request, 'register.html')
-
 
 # ======================
 # LOGIN
@@ -134,7 +143,8 @@ def lawyer_list_view(request):
 # ======================
 # BOOK APPOINTMENT
 # ======================
-from datetime import date, datetime
+
+
 
 @login_required
 def book_appointment_view(request, lawyer_id):
@@ -145,40 +155,24 @@ def book_appointment_view(request, lawyer_id):
 
         message = request.POST.get('message')
         appointment_date = request.POST.get('date')
-        time_input = request.POST.get('time')
+        appointment_time = request.POST.get('time')
 
-        # ✅ Convert time properly (handles both 05:00 PM and 17:00)
         try:
-            if "AM" in time_input or "PM" in time_input:
-                appointment_time = datetime.strptime(time_input, "%I:%M %p").time()
-            else:
-                appointment_time = datetime.strptime(time_input, "%H:%M").time()
-        except:
-            messages.error(request, "Invalid time format.")
+            Appointment.objects.create(
+                client=request.user,
+                lawyer=lawyer_profile.user,
+                message=message,
+                appointment_date=appointment_date,
+                appointment_time=appointment_time
+            )
+
+            messages.success(request, "Appointment booked successfully.")
+            return redirect('/dashboard/')
+
+        except IntegrityError:
+
+            messages.error(request, "This time slot is already booked. Please choose another time.")
             return redirect(f'/book/{lawyer_id}/')
-
-        # Check if slot already accepted
-        existing = Appointment.objects.filter(
-            lawyer=lawyer_profile.user,
-            appointment_date=appointment_date,
-            appointment_time=appointment_time,
-            status='accepted'
-        ).exists()
-
-        if existing:
-            messages.error(request, "This slot is already booked.")
-            return redirect(f'/book/{lawyer_id}/')
-
-        Appointment.objects.create(
-            client=request.user,
-            lawyer=lawyer_profile.user,
-            message=message,
-            appointment_date=appointment_date,
-            appointment_time=appointment_time
-        )
-
-        messages.success(request, "Appointment booked successfully.")
-        return redirect('/dashboard/')
 
     context = {
         'lawyer': lawyer_profile,
@@ -222,13 +216,118 @@ def lawyer_detail_view(request, lawyer_id):
 
     lawyer_profile = get_object_or_404(Profile, id=lawyer_id, user_type='lawyer')
 
-    client_profile = None
-    if hasattr(request.user, 'profile'):
-        client_profile = request.user.profile
+    # lawyer availability check
+    is_available = True
 
     context = {
         'lawyer': lawyer_profile,
-        'client_profile': client_profile
+        'is_available': is_available
     }
 
     return render(request, 'lawyer_detail.html', context)
+
+    return render(request, 'lawyer_detail.html', context)
+@login_required
+def cancel_appointment_view(request, appointment_id):
+
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+
+    if appointment.client != request.user:
+        messages.error(request, "Not allowed.")
+        return redirect('/dashboard/')
+
+    if not appointment.can_cancel():
+        messages.error(request, "Cancellation window closed.")
+        return redirect('/dashboard/')
+
+    appointment.status = "cancelled"
+    appointment.save()
+
+    messages.success(request, "Appointment cancelled successfully.")
+    return redirect('/dashboard/')
+@login_required
+def add_meeting_link_view(request, appointment_id):
+
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+
+    if appointment.lawyer != request.user:
+        messages.error(request, "Not allowed.")
+        return redirect('/dashboard/')
+
+    if request.method == "POST":
+
+        meeting_link = request.POST.get("meeting_link")
+
+        appointment.meeting_link = meeting_link
+        appointment.status = "accepted"
+        appointment.save()
+
+        messages.success(request, "Meeting link added.")
+        return redirect('/dashboard/')
+
+    return render(request, "add_meeting_link.html", {"appointment": appointment})
+@login_required
+def add_meeting_link_view(request, appointment_id):
+
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+
+    if request.user != appointment.lawyer:
+        return redirect('/dashboard/')
+
+    if request.method == 'POST':
+
+        meeting_link = request.POST.get('meeting_link')
+
+        appointment.meeting_link = meeting_link
+        appointment.save()
+
+        messages.success(request, "Meeting link added successfully.")
+
+        return redirect('/dashboard/')
+
+    return render(request, 'add_meeting_link.html', {'appointment': appointment})
+@login_required
+def cancel_appointment_view(request, appointment_id):
+
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+
+    if request.user == appointment.client and appointment.status == 'pending':
+
+        appointment.status = 'cancelled'
+        appointment.save()
+
+        messages.success(request, "Appointment cancelled.")
+
+    return redirect('/dashboard/')
+@login_required
+def legal_ai_view(request):
+
+    advice = None
+    recommended_lawyers = None
+
+    if request.method == "POST":
+
+        problem = request.POST.get("problem").lower()
+
+        # Basic AI logic (can upgrade later)
+
+        if "divorce" in problem:
+            advice = "You may need a divorce lawyer. Under Indian law you can file for divorce under the Hindu Marriage Act or Special Marriage Act."
+            recommended_lawyers = Profile.objects.filter(specialization__icontains="divorce")
+
+        elif "property" in problem or "tenant" in problem:
+            advice = "Property disputes usually require a property lawyer. You may need to issue a legal notice before court proceedings."
+            recommended_lawyers = Profile.objects.filter(specialization__icontains="property")
+
+        elif "cyber" in problem or "fraud" in problem:
+            advice = "Cyber crimes should be reported to the cyber crime portal and handled by a cyber crime lawyer."
+            recommended_lawyers = Profile.objects.filter(specialization__icontains="cyber")
+
+        else:
+            advice = "Your issue may require legal consultation. Please consult a lawyer for proper legal advice."
+            recommended_lawyers = Profile.objects.filter(user_type="lawyer")[:4]
+
+    return render(request, "legal_ai.html", {
+        "advice": advice,
+        "recommended_lawyers": recommended_lawyers
+    })

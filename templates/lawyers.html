@@ -1,59 +1,58 @@
 {% extends 'base.html' %}
-
 {% block content %}
 
 <div class="max-w-7xl mx-auto py-16 px-6">
 
-    <h2 class="text-4xl font-bold text-center mb-12">
-        Find the Right Lawyer for You
-    </h2>
-
-    <!-- Search Bar -->
-    <form method="GET" class="mb-12 text-center">
-        <input type="text" name="q"
-               placeholder="Search by specialization..."
-               class="w-1/2 px-4 py-3 border rounded-xl shadow-sm">
-        <button type="submit"
-                class="bg-blue-600 text-white px-6 py-3 rounded-xl ml-2">
-            Search
-        </button>
-    </form>
+    <h1 class="text-3xl font-bold mb-10 text-center">
+        Available Lawyers
+    </h1>
 
     {% if lawyers %}
-        <div class="grid md:grid-cols-3 gap-8">
-            {% for lawyer in lawyers %}
-                <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition">
 
-                    <div class="mb-4">
-                        <h3 class="text-xl font-bold">
-                            {{ lawyer.user.username }}
-                        </h3>
-                        <p class="text-blue-600 font-semibold">
-                            {{ lawyer.specialization }}
-                        </p>
-                        <p class="text-gray-500 text-sm">
-                            {{ lawyer.experience }} years experience
-                        </p>
-                    </div>
+    <div class="grid md:grid-cols-3 gap-8">
 
-                    <div class="flex justify-between items-center mt-6">
-                        <span class="text-green-600 font-semibold">
-                            Available
-                        </span>
+        {% for lawyer in lawyers %}
+        <div class="bg-white p-8 rounded-3xl shadow-md hover:shadow-xl transition duration-300">
 
-                        <a href="/lawyers/{{ lawyer.id }}/"
-                           class="bg-blue-600 text-white px-4 py-2 rounded-lg">
-                            View Profile
-                        </a>
-                    </div>
+            <!-- Avatar Placeholder -->
+            <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl font-bold mb-6">
+                {{ lawyer.user.username|slice:":1"|upper }}
+            </div>
 
-                </div>
-            {% endfor %}
+            <h2 class="text-xl font-semibold mb-2">
+                {{ lawyer.user.username }}
+            </h2>
+
+            <p class="text-gray-600 mb-2">
+                <strong>Specialization:</strong>
+                {{ lawyer.specialization|default:"Not specified" }}
+            </p>
+
+            <p class="text-gray-600 mb-2">
+                <strong>Experience:</strong>
+                {{ lawyer.experience|default:"0" }} years
+            </p>
+
+            <p class="text-gray-800 font-semibold mb-6">
+                ₹ {{ lawyer.consultation_fee|default:"—" }}
+            </p>
+
+            <a href="/lawyers/{{ lawyer.id }}/"
+               class="block text-center bg-indigo-600 text-white py-2 rounded-xl hover:bg-indigo-700 transition">
+                View Profile
+            </a>
+
         </div>
+        {% endfor %}
+
+    </div>
+
     {% else %}
-        <p class="text-center text-gray-500">
-            No lawyers found.
-        </p>
+
+        <div class="text-center text-gray-500">
+            No lawyers available yet.
+        </div>
+
     {% endif %}
 
 </div>

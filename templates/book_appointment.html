@@ -3,7 +3,6 @@
 {% block content %}
 
 <div class="max-w-3xl mx-auto py-16 px-6">
-
     <div class="bg-white p-10 rounded-3xl shadow-xl">
 
         <h2 class="text-3xl font-bold mb-8">
@@ -13,7 +12,6 @@
         <form method="POST">
             {% csrf_token %}
 
-            <!-- Date Selection -->
             <div class="mb-6">
                 <label class="block mb-2 font-semibold">
                     Select Date
@@ -22,24 +20,17 @@
                        name="date"
                        required
                        min="{{ today }}"
-                       class="w-full border px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-full border px-4 py-2 rounded-xl">
             </div>
 
-            <!-- Time Selection -->
             <div class="mb-6">
                 <label class="block mb-2 font-semibold">
                     Select Time Slot
                 </label>
-
                 <select name="time"
                         required
-                        class="w-full border px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-
+                        class="w-full border px-4 py-2 rounded-xl">
                     <option value="">Select Time</option>
-
-                    <!-- VALUE = 24 hour format (Database) -->
-                    <!-- TEXT = 12 hour format (User View) -->
-
                     <option value="09:00">09:00 AM</option>
                     <option value="10:00">10:00 AM</option>
                     <option value="11:00">11:00 AM</option>
@@ -48,31 +39,26 @@
                     <option value="15:00">03:00 PM</option>
                     <option value="16:00">04:00 PM</option>
                     <option value="17:00">05:00 PM</option>
-
                 </select>
             </div>
 
-            <!-- Optional Message -->
             <div class="mb-6">
                 <label class="block mb-2 font-semibold">
-                    Message (Optional)
+                    Message
                 </label>
                 <textarea name="message"
                           rows="4"
-                          placeholder="Briefly describe your legal issue..."
-                          class="w-full border px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                          class="w-full border px-4 py-2 rounded-xl"></textarea>
             </div>
 
-            <!-- Submit Button -->
             <button type="submit"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl transition duration-200">
+                    class="bg-blue-600 text-white px-8 py-3 rounded-xl">
                 Confirm Booking
             </button>
 
         </form>
 
     </div>
-
 </div>
 
 {% endblock %}
