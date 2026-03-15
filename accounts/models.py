@@ -35,7 +35,8 @@ class Profile(models.Model):
     experience = models.IntegerField(blank=True, null=True)
     consultation_fee = models.IntegerField(blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
-
+    photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    signature = models.ImageField(upload_to='signatures/', blank=True, null=True)
     def __str__(self):
         return f"{self.user.username} ({self.unique_id})"
 

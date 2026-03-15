@@ -6,6 +6,7 @@ from django.contrib import messages
 from .models import Profile, Appointment
 from django.db import IntegrityError
 from datetime import date
+from .ai_engine.ai_processor import process_query
 
 # ======================
 # HOME
@@ -302,32 +303,22 @@ def cancel_appointment_view(request, appointment_id):
 @login_required
 def legal_ai_view(request):
 
-    advice = None
+    result = None
     recommended_lawyers = None
 
     if request.method == "POST":
 
-        problem = request.POST.get("problem").lower()
+        problem = request.POST.get("problem")
 
-        # Basic AI logic (can upgrade later)
+        result = process_query(problem)
 
-        if "divorce" in problem:
-            advice = "You may need a divorce lawyer. Under Indian law you can file for divorce under the Hindu Marriage Act or Special Marriage Act."
-            recommended_lawyers = Profile.objects.filter(specialization__icontains="divorce")
+        if result["lawyer_type"]:
 
-        elif "property" in problem or "tenant" in problem:
-            advice = "Property disputes usually require a property lawyer. You may need to issue a legal notice before court proceedings."
-            recommended_lawyers = Profile.objects.filter(specialization__icontains="property")
-
-        elif "cyber" in problem or "fraud" in problem:
-            advice = "Cyber crimes should be reported to the cyber crime portal and handled by a cyber crime lawyer."
-            recommended_lawyers = Profile.objects.filter(specialization__icontains="cyber")
-
-        else:
-            advice = "Your issue may require legal consultation. Please consult a lawyer for proper legal advice."
-            recommended_lawyers = Profile.objects.filter(user_type="lawyer")[:4]
+            recommended_lawyers = Profile.objects.filter(
+                specialization__icontains=result["lawyer_type"]
+            )
 
     return render(request, "legal_ai.html", {
-        "advice": advice,
+        "result": result,
         "recommended_lawyers": recommended_lawyers
     })
