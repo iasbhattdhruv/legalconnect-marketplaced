@@ -2,63 +2,67 @@
 
 {% block content %}
 
-<div class="max-w-3xl mx-auto py-16 px-6">
-    <div class="bg-white p-10 rounded-3xl shadow-xl">
+<div class="max-w-3xl mx-auto">
 
-        <h2 class="text-3xl font-bold mb-8">
-            Book Consultation with {{ lawyer.user.username }}
-        </h2>
+    <div class="bg-gray-900 p-10 rounded-3xl shadow-xl">
 
-        <form method="POST">
+        <!-- HEADER -->
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold">
+                Book Appointment
+            </h2>
+            <p class="text-gray-400">
+                With {{ lawyer.user.username }}
+            </p>
+        </div>
+
+        <!-- ERROR / SUCCESS MESSAGES -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-3 rounded-xl 
+                    {% if message.tags == 'error' %}bg-red-500{% else %}bg-green-500{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- FORM -->
+        <form method="POST" class="space-y-6">
+
             {% csrf_token %}
 
-            <div class="mb-6">
-                <label class="block mb-2 font-semibold">
-                    Select Date
-                </label>
-                <input type="date"
-                       name="date"
-                       required
-                       min="{{ today }}"
-                       class="w-full border px-4 py-2 rounded-xl">
+            <!-- DATE -->
+            <div>
+                <label class="block mb-2 font-semibold">Select Date</label>
+                <input type="date" name="date" required min="{{ today }}"
+                       class="w-full bg-gray-800 border border-gray-700 px-4 py-3 rounded-xl focus:outline-none">
             </div>
 
-            <div class="mb-6">
-                <label class="block mb-2 font-semibold">
-                    Select Time Slot
-                </label>
-                <select name="time"
-                        required
-                        class="w-full border px-4 py-2 rounded-xl">
-                    <option value="">Select Time</option>
-                    <option value="09:00">09:00 AM</option>
-                    <option value="10:00">10:00 AM</option>
-                    <option value="11:00">11:00 AM</option>
-                    <option value="12:00">12:00 PM</option>
-                    <option value="14:00">02:00 PM</option>
-                    <option value="15:00">03:00 PM</option>
-                    <option value="16:00">04:00 PM</option>
-                    <option value="17:00">05:00 PM</option>
-                </select>
+            <!-- TIME -->
+            <div>
+                <label class="block mb-2 font-semibold">Select Time</label>
+                <input type="time" name="time" required
+                       class="w-full bg-gray-800 border border-gray-700 px-4 py-3 rounded-xl focus:outline-none">
             </div>
 
-            <div class="mb-6">
-                <label class="block mb-2 font-semibold">
-                    Message
-                </label>
-                <textarea name="message"
-                          rows="4"
-                          class="w-full border px-4 py-2 rounded-xl"></textarea>
+            <!-- MESSAGE -->
+            <div>
+                <label class="block mb-2 font-semibold">Describe Your Issue</label>
+                <textarea name="message" rows="4"
+                          class="w-full bg-gray-800 border border-gray-700 px-4 py-3 rounded-xl focus:outline-none"
+                          placeholder="Explain your legal issue..."></textarea>
             </div>
 
+            <!-- SUBMIT -->
             <button type="submit"
-                    class="bg-blue-600 text-white px-8 py-3 rounded-xl">
+                    class="w-full bg-blue-600 py-3 rounded-xl hover:bg-blue-700 text-lg font-semibold">
                 Confirm Booking
             </button>
 
         </form>
 
     </div>
+
 </div>
 
 {% endblock %}

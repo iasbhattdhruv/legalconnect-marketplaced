@@ -7,6 +7,7 @@ from .models import Profile, Appointment
 from django.db import IntegrityError
 from datetime import date
 from .ai_engine.ai_processor import process_query
+from .models import AIChat
 
 # ======================
 # HOME
@@ -310,15 +311,31 @@ def legal_ai_view(request):
 
         problem = request.POST.get("problem")
 
+        # 🧠 AI Processing
         result = process_query(problem)
 
-        if result["lawyer_type"]:
+        # 👨‍⚖️ Lawyer Recommendation
+        lawyer_type = result.get("lawyer_type")
 
+        if lawyer_type:
             recommended_lawyers = Profile.objects.filter(
-                specialization__icontains=result["lawyer_type"]
+                specialization__icontains=lawyer_type
             )
+
+        # 💾 SAVE MEMORY
+        AIChat.objects.create(
+            user=request.user,
+            question=problem,
+            answer=result.get("advice", "")
+        )
+
+    # 📜 FETCH HISTORY
+    chat_history = AIChat.objects.filter(
+        user=request.user
+    ).order_by('-created_at')[:5]
 
     return render(request, "legal_ai.html", {
         "result": result,
-        "recommended_lawyers": recommended_lawyers
+        "recommended_lawyers": recommended_lawyers,
+        "chat_history": chat_history
     })

@@ -1,125 +1,88 @@
 {% extends 'base.html' %}
+
 {% block content %}
 
-<div class="max-w-7xl mx-auto py-16 px-6">
+<div class="max-w-6xl mx-auto">
 
-    <h1 class="text-3xl font-bold mb-10">
-        Welcome, {{ request.user.username }}
-    </h1>
-
-    <!-- PROFILE CARD -->
-    <div class="bg-white p-8 rounded-3xl shadow-md mb-10">
-        <h2 class="text-xl font-semibold mb-4">Profile Information</h2>
-
-        <div class="grid md:grid-cols-2 gap-6 text-gray-600">
-            <p><strong>User ID:</strong> {{ profile.unique_id }}</p>
-            <p><strong>Type:</strong> {{ profile.user_type }}</p>
-            <p><strong>Gender:</strong> {{ profile.gender }}</p>
-            <p><strong>Profession:</strong> {{ profile.profession }}</p>
-            <p><strong>Birthdate:</strong> {{ profile.birthdate }}</p>
-        </div>
+    <!-- HEADER -->
+    <div class="mb-8">
+        <h2 class="text-3xl font-bold">
+            Welcome, {{ request.user.username }}
+        </h2>
+        <p class="text-gray-400">
+            Manage your legal activities efficiently
+        </p>
     </div>
 
+    <!-- STATS -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
 
-    <!-- STATISTICS -->
-    <div class="grid md:grid-cols-4 gap-6 mb-12">
-
-        <div class="bg-white p-6 rounded-2xl shadow text-center">
-            <h3 class="text-gray-500">Total</h3>
+        <div class="bg-gray-900 p-6 rounded-2xl">
+            <h3 class="text-gray-400">Total</h3>
             <p class="text-2xl font-bold">{{ total }}</p>
         </div>
 
-        <div class="bg-yellow-100 p-6 rounded-2xl shadow text-center">
-            <h3 class="text-yellow-700">Pending</h3>
+        <div class="bg-yellow-500/10 p-6 rounded-2xl">
+            <h3 class="text-yellow-400">Pending</h3>
             <p class="text-2xl font-bold">{{ pending }}</p>
         </div>
 
-        <div class="bg-green-100 p-6 rounded-2xl shadow text-center">
-            <h3 class="text-green-700">Accepted</h3>
+        <div class="bg-green-500/10 p-6 rounded-2xl">
+            <h3 class="text-green-400">Accepted</h3>
             <p class="text-2xl font-bold">{{ accepted }}</p>
         </div>
 
-        <div class="bg-red-100 p-6 rounded-2xl shadow text-center">
-            <h3 class="text-red-700">Rejected</h3>
+        <div class="bg-red-500/10 p-6 rounded-2xl">
+            <h3 class="text-red-400">Rejected</h3>
             <p class="text-2xl font-bold">{{ rejected }}</p>
         </div>
 
     </div>
 
+    <!-- APPOINTMENTS -->
+    <div class="bg-gray-900 p-8 rounded-2xl">
 
-    <!-- APPOINTMENT TABLE -->
-    <div class="bg-white p-8 rounded-3xl shadow-md">
+        <h3 class="text-xl font-bold mb-6">
+            Appointments
+        </h3>
 
-        <h2 class="text-xl font-semibold mb-6">Appointments</h2>
+        {% for a in appointments %}
 
-        {% if appointments %}
+        <div class="border-b border-gray-800 py-4 flex justify-between items-center">
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <div>
+                <p class="font-semibold">
+                    {{ a.appointment_date }} - {{ a.appointment_time }}
+                </p>
+                <p class="text-gray-400">
+                    {{ a.message }}
+                </p>
+            </div>
 
-                <thead>
-                    <tr class="border-b">
-                        <th class="py-3">Client</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Status</th>
-                        {% if profile.user_type == 'lawyer' %}
-                        <th>Actions</th>
-                        {% endif %}
-                    </tr>
-                </thead>
+            <div class="space-x-3">
 
-                <tbody>
+                {% if profile.user_type == 'lawyer' and a.status == 'pending' %}
+                    <a href="/appointment/{{ a.id }}/accept/" class="bg-green-600 px-4 py-2 rounded-xl">Accept</a>
+                    <a href="/appointment/{{ a.id }}/reject/" class="bg-red-600 px-4 py-2 rounded-xl">Reject</a>
+                {% endif %}
 
-                    {% for app in appointments %}
-                    <tr class="border-b hover:bg-gray-50 transition">
+                {% if a.status == 'pending' and profile.user_type == 'client' %}
+                    <a href="/appointment/cancel/{{ a.id }}/" class="bg-red-600 px-4 py-2 rounded-xl">Cancel</a>
+                {% endif %}
 
-                        <td class="py-3">
-                            {% if profile.user_type == 'lawyer' %}
-                                {{ app.client.username }}
-                            {% else %}
-                                {{ app.lawyer.username }}
-                            {% endif %}
-                        </td>
+                {% if a.meeting_link %}
+                    <a href="{{ a.meeting_link }}" target="_blank" class="bg-blue-600 px-4 py-2 rounded-xl">
+                        Join
+                    </a>
+                {% endif %}
 
-                        <td>{{ app.appointment_date }}</td>
-                        <td>{{ app.appointment_time }}</td>
+            </div>
 
-                        <td>
-                            {% if app.status == 'pending' %}
-                                <span class="text-yellow-600 font-semibold">Pending</span>
-                            {% elif app.status == 'accepted' %}
-                                <span class="text-green-600 font-semibold">Accepted</span>
-                            {% else %}
-                                <span class="text-red-600 font-semibold">Rejected</span>
-                            {% endif %}
-                        </td>
-
-                        {% if profile.user_type == 'lawyer' and app.status == 'pending' %}
-                        <td>
-                            <a href="/appointment/{{ app.id }}/accept/"
-                               class="bg-green-500 text-white px-3 py-1 rounded-lg text-sm">
-                               Accept
-                            </a>
-
-                            <a href="/appointment/{{ app.id }}/reject/"
-                               class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm ml-2">
-                               Reject
-                            </a>
-                        </td>
-                        {% endif %}
-
-                    </tr>
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
         </div>
 
-        {% else %}
-            <p class="text-gray-500">No appointments yet.</p>
-        {% endif %}
+        {% empty %}
+            <p class="text-gray-400">No appointments yet.</p>
+        {% endfor %}
 
     </div>
 

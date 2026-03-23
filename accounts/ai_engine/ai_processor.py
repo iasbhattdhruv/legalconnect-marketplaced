@@ -1,32 +1,25 @@
 from .intent_detector import detect_intent
-from .knowledge_base import knowledge_base
+from .knowledge_base import get_knowledge
 
 
 def process_query(user_input):
 
+    # Detect intent
     intent = detect_intent(user_input)
 
-    if intent and intent in knowledge_base:
+    # Get knowledge data
+    data = get_knowledge(intent)
 
-        data = knowledge_base[intent]
+    # ✅ If knowledge exists → return smart structured response
+    if data:
+        data["google_search"] = f"https://www.google.com/search?q={user_input}"
+        return data
 
-        return {
-            "advice": data.get("advice"),
-            "steps": data.get("steps"),
-            "links": data.get("links")
-        }
-
-    # Fallback AI response
+    # ❌ If no knowledge → fallback to Google
     return {
-        "advice": "I couldn't fully understand the issue, but you may find useful information from the following official resources.",
-        "steps": [
-            "Search on official government portals",
-            "Check if legal consultation is required",
-            "Contact a lawyer if needed"
-        ],
-        "links": [
-            "https://india.gov.in/",
-            "https://districts.ecourts.gov.in/",
-            "https://www.india.gov.in/topics/law-justice"
-        ]
+        "advice": "I couldn't find exact structured guidance for your query. You can explore more here:",
+        "steps": [],
+        "links": [],
+        "google_search": f"https://www.google.com/search?q={user_input}",
+        "lawyer_type": None
     }

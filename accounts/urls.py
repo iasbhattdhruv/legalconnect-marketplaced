@@ -18,5 +18,5 @@ urlpatterns = [
 
     path('appointment/cancel/<int:appointment_id>/', cancel_appointment_view),
     path('appointment/add-link/<int:appointment_id>/', add_meeting_link_view),
-    path('ai-legal-assistant/', legal_ai_view),
+    path('legal-ai/', legal_ai_view),
 ]

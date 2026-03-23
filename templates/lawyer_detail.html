@@ -2,88 +2,57 @@
 
 {% block content %}
 
-<div class="max-w-4xl mx-auto py-16 px-6">
+<div class="max-w-4xl mx-auto">
 
-    <div class="bg-white p-10 rounded-3xl shadow-xl">
+    <div class="bg-gray-900 p-10 rounded-3xl shadow-xl">
 
-        <div class="flex justify-between items-center mb-6">
+        <!-- PROFILE -->
+        <div class="flex flex-col items-center">
 
-            <div>
-                <h2 class="text-4xl font-bold">
-                    {{ lawyer.user.username }}
-                </h2>
+            {% if lawyer.photo %}
+                <img src="{{ lawyer.photo.url }}" class="w-28 h-28 rounded-full mb-4 object-cover border-2 border-blue-500">
+            {% else %}
+                <div class="w-28 h-28 rounded-full bg-gray-700 flex items-center justify-center text-3xl mb-4">
+                    👨‍⚖️
+                </div>
+            {% endif %}
 
-                <p class="text-gray-600 mt-2">
-                    {{ lawyer.specialization|default:"Specialization not specified" }}
-                </p>
+            <h2 class="text-3xl font-bold">
+                {{ lawyer.user.username }}
+            </h2>
 
-                <p class="text-gray-500">
-                    {{ lawyer.experience|default:"0" }} years experience
+            <p class="text-gray-400">
+                {{ lawyer.specialization|default:"General Lawyer" }}
+            </p>
+
+        </div>
+
+        <!-- DETAILS -->
+        <div class="mt-8 grid grid-cols-2 gap-6 text-center">
+
+            <div class="bg-gray-800 p-4 rounded-xl">
+                <p class="text-gray-400">Experience</p>
+                <p class="text-xl font-bold">
+                    {{ lawyer.experience|default:"0" }} years
                 </p>
             </div>
 
-            {% if is_available %}
-            <span class="bg-green-100 text-green-700 px-4 py-2 rounded-full">
-                Available
-            </span>
-            {% else %}
-            <span class="bg-red-100 text-red-700 px-4 py-2 rounded-full">
-                Not Available
-            </span>
-            {% endif %}
+            <div class="bg-gray-800 p-4 rounded-xl">
+                <p class="text-gray-400">Consultation Fee</p>
+                <p class="text-xl font-bold">
+                    ₹{{ lawyer.consultation_fee|default:"Free" }}
+                </p>
+            </div>
 
         </div>
-
-        <!-- BIO -->
-        <div class="mb-8">
-
-            <h3 class="text-xl font-semibold mb-2">
-                About Lawyer
-            </h3>
-
-            <p class="text-gray-600">
-                {{ lawyer.bio|default:"No biography provided." }}
-            </p>
-
-        </div>
-
-
-        <!-- CONSULTATION FEE -->
-        <div class="bg-blue-50 p-6 rounded-xl mb-8">
-
-            <h3 class="text-xl font-semibold mb-2">
-                Consultation Fee
-            </h3>
-
-            <p class="text-3xl font-bold text-blue-700">
-                ₹{{ lawyer.consultation_fee|default:"Not set" }}
-            </p>
-
-        </div>
-
 
         <!-- BOOK BUTTON -->
-
-        <div class="text-center">
-
-            {% if is_available %}
+        <div class="mt-10 text-center">
 
             <a href="/book/{{ lawyer.id }}/"
-               class="bg-blue-600 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-blue-700">
-
-                Book Consultation
-
+               class="bg-blue-600 px-8 py-3 rounded-xl text-lg hover:bg-blue-700">
+                Book Appointment
             </a>
-
-            {% else %}
-
-            <button class="bg-gray-400 text-white px-10 py-4 rounded-xl cursor-not-allowed">
-
-                Lawyer Not Available
-
-            </button>
-
-            {% endif %}
 
         </div>
 

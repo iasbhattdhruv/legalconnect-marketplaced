@@ -2,218 +2,178 @@
 
 {% block content %}
 
-<div class="max-w-5xl mx-auto py-16 px-6">
+<div class="max-w-5xl mx-auto py-10 px-4">
 
-```
-<!-- AI Header Card -->
-<div class="bg-white p-10 rounded-3xl shadow-xl">
+    <!-- HEADER -->
+    <div class="text-center mb-6">
+        <h2 class="text-3xl font-bold">
+            ⚖ Smart Legal AI Assistant
+        </h2>
+        <p class="text-gray-400">
+            Legal help • Government services • Smart guidance
+        </p>
+    </div>
 
-    <h2 class="text-3xl font-bold mb-2 text-center">
-        ⚖ Smart Legal & Government Assistant
-    </h2>
+    <!-- CHAT CONTAINER -->
+    <div class="bg-gray-900 rounded-3xl p-6 h-[500px] overflow-y-auto flex flex-col space-y-4 shadow-xl">
 
-    <p class="text-center text-gray-500 mb-6">
-        Ask about legal problems, government services, or documentation.
-    </p>
+        {% if result %}
 
-    <form method="POST">
+            <!-- USER MESSAGE -->
+            <div class="self-end bg-blue-600 px-4 py-2 rounded-xl max-w-xs">
+                {{ request.POST.problem }}
+            </div>
+
+            <!-- AI RESPONSE -->
+            <div class="self-start bg-gray-800 px-5 py-4 rounded-xl max-w-xl space-y-4">
+
+                <!-- AI TEXT -->
+                <p class="text-gray-200">
+                    {{ result.advice }}
+                </p>
+
+                <!-- STEPS -->
+                {% if result.steps %}
+                <div>
+                    <h4 class="font-semibold text-sm mb-2">Suggested Steps:</h4>
+                    <ul class="list-disc pl-5 text-sm space-y-1 text-gray-300">
+                        {% for step in result.steps %}
+                            <li>{{ step }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- LINKS -->
+                {% if result.links %}
+                <div>
+                    <h4 class="font-semibold text-sm mb-2">Useful Links:</h4>
+                    {% for link in result.links %}
+                        <a href="{{ link }}" target="_blank"
+                           class="block text-blue-400 underline text-sm">
+                           🔗 {{ link }}
+                        </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- GOOGLE SEARCH -->
+                {% if result.google_search %}
+                <div class="bg-gray-700 p-3 rounded-xl text-sm">
+                    <p class="mb-1">Need more help?</p>
+                    <a href="{{ result.google_search }}" target="_blank"
+                       class="text-blue-400 underline">
+                       🔍 Search on Google
+                    </a>
+                </div>
+                {% endif %}
+
+            </div>
+
+        {% else %}
+
+            <!-- EMPTY STATE -->
+            <div class="text-center text-gray-500 mt-32">
+                Start by asking a legal or government-related question...
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <!-- INPUT BOX -->
+    <form method="POST" class="mt-4 flex gap-2">
+
         {% csrf_token %}
 
-        <textarea
-            name="problem"
-            placeholder="Example: I want divorce / How to update Aadhaar / Tenant not leaving house"
-            class="w-full border px-4 py-3 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows="4"
-            required></textarea>
+        <input type="text"
+               name="problem"
+               required
+               placeholder="Type your question... (e.g., divorce, Aadhaar update)"
+               class="flex-1 bg-gray-800 px-4 py-3 rounded-xl focus:outline-none">
 
         <button type="submit"
-            class="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition">
-
-            Ask AI Assistant
-
+                class="bg-blue-600 px-6 py-3 rounded-xl hover:bg-blue-700">
+            Send
         </button>
 
     </form>
 
-</div>
-
-
-<!-- AI RESULT SECTION -->
-{% if result %}
-
-<div class="bg-white p-10 rounded-3xl shadow-xl mt-8">
-
-    <!-- Advice -->
-    <h3 class="text-xl font-bold mb-3">
-        AI Guidance
-    </h3>
-
-    <p class="mb-6 text-gray-700">
-        {{ result.advice }}
-    </p>
-
-
-    <!-- Steps -->
-    {% if result.steps %}
-
-    <h4 class="font-semibold mb-3">
-        Suggested Steps
-    </h4>
-
-    <ul class="list-disc pl-6 mb-6 space-y-1">
-
-        {% for step in result.steps %}
-
-        <li>{{ step }}</li>
-
-        {% endfor %}
-
-    </ul>
-
-    {% endif %}
-
-
-    <!-- Useful Resources -->
-    {% if result.links %}
-
-    <h4 class="font-semibold mb-3">
-        Official / Useful Resources
-    </h4>
-
-    <ul class="list-disc pl-6 mb-6 space-y-2">
-
-        {% for link in result.links %}
-
-        <li>
-
-            <a href="{{ link }}"
-               target="_blank"
-               class="text-blue-600 underline hover:text-blue-800">
-
-               {{ link }}
-
-            </a>
-
-        </li>
-
-        {% endfor %}
-
-    </ul>
-
-    {% endif %}
-
-
-    <!-- Google Search Fallback -->
-    {% if result.google_search %}
-
-    <div class="bg-gray-50 border p-5 rounded-xl mb-6">
-
-        <h4 class="font-semibold mb-2">
-            Need more information?
-        </h4>
-
-        <p class="text-gray-600 mb-2">
-            Explore additional resources related to your question.
-        </p>
-
-        <a href="{{ result.google_search }}"
-           target="_blank"
-           class="text-blue-600 underline font-medium">
-
-           View Google Search Results
-
-        </a>
-
-    </div>
-
-    {% endif %}
-
-
-    <!-- Recommended Lawyers -->
+    <!-- LAWYERS SECTION -->
     {% if recommended_lawyers %}
 
-    <h4 class="font-semibold mb-4">
-        Recommended Lawyers
-    </h4>
+    <div class="bg-white p-8 rounded-3xl shadow-xl mt-8">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <h3 class="text-lg font-bold mb-4">
+            Recommended Lawyers
+        </h3>
 
-        {% for lawyer in recommended_lawyers %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        <div class="border p-5 rounded-xl hover:shadow-md transition">
+            {% for lawyer in recommended_lawyers %}
 
-            <div class="flex items-center gap-3 mb-2">
+            <div class="border p-4 rounded-xl hover:shadow-md transition">
 
-                {% if lawyer.photo %}
-                <img src="{{ lawyer.photo.url }}"
-                     class="w-10 h-10 rounded-full object-cover">
-                {% endif %}
+                <div class="flex items-center gap-3 mb-2">
 
-                <div>
+                    {% if lawyer.photo %}
+                    <img src="{{ lawyer.photo.url }}"
+                         class="w-10 h-10 rounded-full object-cover">
+                    {% endif %}
 
-                    <h5 class="font-bold">
-                        {{ lawyer.user.username }}
-                    </h5>
-
-                    <p class="text-sm text-gray-500">
-                        {{ lawyer.specialization }}
-                    </p>
+                    <div>
+                        <h5 class="font-bold">
+                            {{ lawyer.user.username }}
+                        </h5>
+                        <p class="text-sm text-gray-500">
+                            {{ lawyer.specialization }}
+                        </p>
+                    </div>
 
                 </div>
 
+                <a href="/lawyers/{{ lawyer.id }}/"
+                   class="text-blue-600 underline">
+                   View Profile
+                </a>
+
             </div>
 
-            <a href="/lawyers/{{ lawyer.id }}/"
-               class="text-blue-600 underline">
-
-               View Profile
-
-            </a>
+            {% endfor %}
 
         </div>
-
-        {% endfor %}
 
     </div>
 
     {% endif %}
 
-</div>
+    <!-- FUTURE CHAT HISTORY -->
+    {% if chat_history %}
 
-{% endif %}
+    <div class="bg-white p-8 rounded-3xl shadow-xl mt-8">
 
+        <h3 class="text-lg font-bold mb-4">
+            Previous Questions
+        </h3>
 
-<!-- FUTURE CHAT HISTORY SUPPORT -->
-{% if chat_history %}
+        <ul class="space-y-2">
 
-<div class="bg-white p-8 rounded-3xl shadow-xl mt-8">
+            {% for item in chat_history %}
 
-    <h3 class="text-lg font-bold mb-4">
-        Previous Questions
-    </h3>
+            <li class="border p-3 rounded-lg">
 
-    <ul class="space-y-2">
+                <strong>Q:</strong> {{ item.question }} <br>
+                <strong>A:</strong> {{ item.answer }}
 
-        {% for item in chat_history %}
+            </li>
 
-        <li class="border p-3 rounded-lg">
+            {% endfor %}
 
-            <strong>Question:</strong> {{ item.question }}
+        </ul>
 
-            <br>
+    </div>
 
-            <strong>Answer:</strong> {{ item.answer }}
-
-        </li>
-
-        {% endfor %}
-
-    </ul>
-
-</div>
-
-{% endif %}
-```
+    {% endif %}
 
 </div>
 

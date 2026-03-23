@@ -1,59 +1,84 @@
 {% extends 'base.html' %}
+
 {% block content %}
 
-<div class="max-w-7xl mx-auto py-16 px-6">
+<div class="max-w-7xl mx-auto">
 
-    <h1 class="text-3xl font-bold mb-10 text-center">
-        Available Lawyers
-    </h1>
+    <!-- HEADER -->
+    <div class="mb-10 text-center">
+        <h2 class="text-4xl font-bold mb-2">
+            Find Expert Lawyers
+        </h2>
+        <p class="text-gray-400">
+            Connect with verified legal professionals
+        </p>
+    </div>
 
-    {% if lawyers %}
+    <!-- SEARCH BAR (future ready) -->
+    <div class="mb-10">
+        <input type="text" placeholder="Search by specialization..."
+               class="w-full bg-gray-900 border border-gray-700 px-5 py-3 rounded-xl focus:outline-none">
+    </div>
 
-    <div class="grid md:grid-cols-3 gap-8">
+    <!-- LAWYERS GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
         {% for lawyer in lawyers %}
-        <div class="bg-white p-8 rounded-3xl shadow-md hover:shadow-xl transition duration-300">
 
-            <!-- Avatar Placeholder -->
-            <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl font-bold mb-6">
-                {{ lawyer.user.username|slice:":1"|upper }}
+        <div class="bg-gray-900 rounded-2xl p-6 hover:scale-105 transition duration-300 shadow-lg">
+
+            <!-- PROFILE IMAGE -->
+            <div class="flex justify-center mb-4">
+                {% if lawyer.photo %}
+                    <img src="{{ lawyer.photo.url }}" class="w-24 h-24 rounded-full object-cover border-2 border-blue-500">
+                {% else %}
+                    <div class="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center text-2xl">
+                        👨‍⚖️
+                    </div>
+                {% endif %}
             </div>
 
-            <h2 class="text-xl font-semibold mb-2">
+            <!-- NAME -->
+            <h3 class="text-xl font-bold text-center">
                 {{ lawyer.user.username }}
-            </h2>
+            </h3>
 
-            <p class="text-gray-600 mb-2">
-                <strong>Specialization:</strong>
-                {{ lawyer.specialization|default:"Not specified" }}
+            <!-- SPECIALIZATION -->
+            <p class="text-center text-gray-400 mb-3">
+                {{ lawyer.specialization|default:"General Lawyer" }}
             </p>
 
-            <p class="text-gray-600 mb-2">
-                <strong>Experience:</strong>
-                {{ lawyer.experience|default:"0" }} years
+            <!-- EXPERIENCE -->
+            <p class="text-center text-sm text-gray-500 mb-4">
+                {{ lawyer.experience|default:"0" }} years experience
             </p>
 
-            <p class="text-gray-800 font-semibold mb-6">
-                ₹ {{ lawyer.consultation_fee|default:"—" }}
-            </p>
+            <!-- ACTIONS -->
+            <div class="flex justify-center space-x-3">
 
-            <a href="/lawyers/{{ lawyer.id }}/"
-               class="block text-center bg-indigo-600 text-white py-2 rounded-xl hover:bg-indigo-700 transition">
-                View Profile
-            </a>
+                <a href="/lawyers/{{ lawyer.id }}/"
+                   class="bg-gray-700 px-4 py-2 rounded-xl hover:bg-gray-600">
+                   View
+                </a>
+
+                <a href="/book/{{ lawyer.id }}/"
+                   class="bg-blue-600 px-4 py-2 rounded-xl hover:bg-blue-700">
+                   Book
+                </a>
+
+            </div>
 
         </div>
+
+        {% empty %}
+
+        <p class="text-gray-400 col-span-3 text-center">
+            No lawyers available.
+        </p>
+
         {% endfor %}
 
     </div>
-
-    {% else %}
-
-        <div class="text-center text-gray-500">
-            No lawyers available yet.
-        </div>
-
-    {% endif %}
 
 </div>
 
