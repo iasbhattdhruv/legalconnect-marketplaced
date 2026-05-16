@@ -130,7 +130,7 @@
                     {% if user.profile.user_type == 'lawyer' %}
                         <a href="/lawyer-availability/" class="hover:text-slate-900">Availability</a>
                     {% endif %}
-                    {% if user.is_superuser %}
+                    {% if user.is_superuser or user.profile.user_type == 'admin' %}
                         <a href="/admin-dashboard/" class="btn-secondary">Admin Dashboard</a>
                     {% endif %}
                 {% endif %}

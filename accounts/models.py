@@ -156,6 +156,17 @@ class Appointment(models.Model):
     def __str__(self):
         return f"{self.client.username} → {self.lawyer.username} ({self.status})"
 
+    @classmethod
+    def is_slot_available(cls, lawyer, appointment_date, appointment_time, exclude_id=None):
+        appointments = cls.objects.filter(
+            lawyer=lawyer,
+            appointment_date=appointment_date,
+            appointment_time=appointment_time,
+        ).exclude(status__in=['cancelled', 'rejected'])
+        if exclude_id:
+            appointments = appointments.exclude(id=exclude_id)
+        return not appointments.exists()
+
 
 class Review(models.Model):
     appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE, related_name='review')
@@ -300,11 +311,25 @@ class AIConversation(models.Model):
                 ]
             }
         elif self.state == 'lawyer_selection':
-            from .models import Profile
-            lawyers = Profile.objects.filter(
-                user_type='lawyer',
-                specialization__icontains=self.selected_category
-            ).select_related('user')[:10]  # Limit to 10 for UI
+            from django.db.models import Q
+
+            category_terms = {
+                'criminal': ['criminal', 'crime'],
+                'family': ['family', 'divorce', 'custody'],
+                'corporate': ['corporate', 'business', 'company'],
+                'property': ['property', 'real estate', 'land'],
+                'other': [],
+            }
+            lawyers = Profile.objects.filter(user_type='lawyer').select_related('user')
+            terms = category_terms.get(self.selected_category, [self.selected_category])
+            if terms:
+                query = Q()
+                for term in terms:
+                    query |= Q(specialization__icontains=term) | Q(bio__icontains=term)
+                matched_lawyers = lawyers.filter(query)
+                if matched_lawyers.exists():
+                    lawyers = matched_lawyers
+            lawyers = lawyers.order_by('user__first_name', 'user__username')[:10]
 
             return {
                 'type': 'lawyers',
@@ -335,19 +360,35 @@ class AIConversation(models.Model):
                 'options': dates
             }
         elif self.state == 'time_selection':
+            if not self.selected_lawyer_id or not self.selected_date:
+                return {'type': 'times', 'options': []}
+
+            lawyer_profile = Profile.objects.filter(
+                id=self.selected_lawyer_id,
+                user_type='lawyer'
+            ).select_related('user').first()
+            if not lawyer_profile:
+                return {'type': 'times', 'options': []}
+
             times = []
             for hour in range(9, 18):  # 9 AM to 5 PM
                 for minute in [0, 30]:
                     time_str = f"{hour:02d}:{minute:02d}"
+                    from datetime import datetime
+                    option_time = datetime.strptime(time_str, '%H:%M').time()
                     times.append({
                         'id': time_str,
                         'label': time_str,
-                        'available': True  # Could check availability later
+                        'available': Appointment.is_slot_available(
+                            lawyer_profile.user,
+                            self.selected_date,
+                            option_time
+                        )
                     })
 
             return {
                 'type': 'times',
-                'options': times
+                'options': [slot for slot in times if slot['available']]
             }
         elif self.state == 'confirmation':
             return {

@@ -1,10 +1,13 @@
 import os
 import random
 import string
+import logging
 from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from django.conf import settings
 from django.contrib.auth.models import User
+
+logger = logging.getLogger(__name__)
 
 EXCEL_FILE = os.path.join(settings.BASE_DIR, 'users.xlsx')
 EXPECTED_HEADERS = [
@@ -69,32 +72,35 @@ def ensure_users_excel():
 
 
 def append_user_to_excel(user, password=None):
-    ensure_users_excel()
-    workbook = load_workbook(EXCEL_FILE)
-    sheet = workbook.active
-    headers = [str(cell.value).strip().lower().replace(' ', '_') if cell.value else '' for cell in next(sheet.iter_rows(min_row=1, max_row=1))]
-    birthdate_value = ''
-    if hasattr(user, 'profile') and user.profile.birthdate:
-        if hasattr(user.profile.birthdate, 'isoformat'):
-            birthdate_value = user.profile.birthdate.isoformat()
-        else:
-            birthdate_value = str(user.profile.birthdate)
+    try:
+        ensure_users_excel()
+        workbook = load_workbook(EXCEL_FILE)
+        sheet = workbook.active
+        headers = [str(cell.value).strip().lower().replace(' ', '_') if cell.value else '' for cell in next(sheet.iter_rows(min_row=1, max_row=1))]
+        birthdate_value = ''
+        if hasattr(user, 'profile') and user.profile.birthdate:
+            if hasattr(user.profile.birthdate, 'isoformat'):
+                birthdate_value = user.profile.birthdate.isoformat()
+            else:
+                birthdate_value = str(user.profile.birthdate)
 
-    row_data = {
-        'username': user.username,
-        'email': user.email,
-        'password': '',
-        'user_type': user.profile.user_type if hasattr(user, 'profile') else '',
-        'gender': user.profile.gender if hasattr(user, 'profile') else '',
-        'birthdate': birthdate_value,
-        'profession': user.profile.profession if hasattr(user, 'profile') else '',
-        'photo': user.profile.photo.url if hasattr(user, 'profile') and user.profile.photo else '',
-        'signature': user.profile.signature.url if hasattr(user, 'profile') and user.profile.signature else '',
-        'created_at': datetime.now().isoformat(),
-    }
-    row = [row_data.get(header, '') for header in headers]
-    sheet.append(row)
-    workbook.save(EXCEL_FILE)
+        row_data = {
+            'username': user.username,
+            'email': user.email,
+            'password': '',
+            'user_type': user.profile.user_type if hasattr(user, 'profile') else '',
+            'gender': user.profile.gender if hasattr(user, 'profile') else '',
+            'birthdate': birthdate_value,
+            'profession': user.profile.profession if hasattr(user, 'profile') else '',
+            'photo': user.profile.photo.url if hasattr(user, 'profile') and user.profile.photo else '',
+            'signature': user.profile.signature.url if hasattr(user, 'profile') and user.profile.signature else '',
+            'created_at': datetime.now().isoformat(),
+        }
+        row = [row_data.get(header, '') for header in headers]
+        sheet.append(row)
+        workbook.save(EXCEL_FILE)
+    except OSError as exc:
+        logger.warning("Could not write users.xlsx; user was saved in database. Error: %s", exc)
 
 
 def _generate_password(length=12):

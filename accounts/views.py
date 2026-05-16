@@ -4,10 +4,12 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import date, datetime, timedelta
 from openpyxl import Workbook, load_workbook
+import logging
 import os
 import urllib.parse
 
@@ -30,24 +32,83 @@ from .analytics import summarize_booking_data
 from .excel_utils import append_user_to_excel, sync_users_from_excel
 from .legal_updates import get_latest_legal_updates
 from .ml_features import build_case_guidance, build_triage_report, classify_legal_issue, recommend_lawyers
+from .demo_data import ensure_demo_data
+
+logger = logging.getLogger(__name__)
+
+
+def _parse_booking_date(value):
+    if not value:
+        raise ValueError("Please choose an appointment date.")
+    selected_date = date.fromisoformat(value)
+    if selected_date < timezone.localdate():
+        raise ValueError("Please choose today or a future date.")
+    return selected_date
+
+
+def _parse_booking_time(value):
+    if not value:
+        raise ValueError("Please choose an appointment time.")
+    return datetime.strptime(value, '%H:%M').time()
+
+
+def _create_pending_appointment(client, lawyer_profile, appointment_date, appointment_time, message='', mobile_number=''):
+    if not appointment_date:
+        raise ValueError("Please choose an appointment date.")
+    if not appointment_time:
+        raise ValueError("Please choose an appointment time.")
+
+    if client == lawyer_profile.user:
+        raise ValueError("You cannot book an appointment with yourself.")
+
+    if getattr(client, 'profile', None) and client.profile.user_type != 'client':
+        raise ValueError("Only client accounts can book appointments.")
+
+    if not Appointment.is_slot_available(lawyer_profile.user, appointment_date, appointment_time):
+        raise ValueError("That time slot was just booked. Please choose another time.")
+
+    appointment = Appointment(
+        client=client,
+        lawyer=lawyer_profile.user,
+        message=message,
+        appointment_date=appointment_date,
+        appointment_time=appointment_time,
+        mobile_number=mobile_number,
+        status='pending'
+    )
+    appointment.full_clean()
+    appointment.save()
+    return appointment
+
+
+def _is_admin_user(user):
+    return (
+        user.is_authenticated
+        and (
+            user.is_superuser
+            or getattr(getattr(user, 'profile', None), 'user_type', None) == 'admin'
+        )
+    )
 
 
 # ======================
 # HOME
 # ======================
 def home_view(request):
+    if not Profile.objects.filter(user_type='lawyer').exists() or not User.objects.filter(profile__user_type='admin').exists():
+        ensure_demo_data(create_admin=True)
     booking_insights = summarize_booking_data()
     legal_updates = get_latest_legal_updates()
     return render(request, 'home.html', {
         'booking_insights': booking_insights,
         'legal_updates': legal_updates,
-        'show_excel_sync': request.user.is_authenticated and request.user.is_superuser,
+        'show_excel_sync': _is_admin_user(request.user),
     })
 
 
 def user_portal_entry(request):
     if request.user.is_authenticated:
-        if request.user.is_superuser or request.user.profile.user_type == 'admin':
+        if _is_admin_user(request.user):
             messages.success(request, "Admin session detected. Opening admin dashboard.")
             return redirect('/admin-dashboard/')
         return redirect('/dashboard/')
@@ -56,7 +117,7 @@ def user_portal_entry(request):
 
 def admin_portal_entry(request):
     if request.user.is_authenticated:
-        if request.user.is_superuser or request.user.profile.user_type == 'admin':
+        if _is_admin_user(request.user):
             return redirect('/admin-dashboard/')
         logout(request)
         messages.error(request, "Admin portal requires an admin account. Please login with admin credentials.")
@@ -75,7 +136,7 @@ def register_view(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         user_type = request.POST.get('user_type')
-        if user_type not in ('client', 'lawyer'):
+        if user_type not in ('client', 'lawyer', 'admin'):
             user_type = 'client'
 
         gender = request.POST.get('gender')
@@ -98,6 +159,10 @@ def register_view(request):
             email=email,
             password=password
         )
+        if user_type == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
 
         profile = user.profile
         profile.user_type = user_type
@@ -130,7 +195,7 @@ def login_view(request):
 
         if user:
             login(request, user)
-            if next_url == '/admin-dashboard/' and not (user.is_superuser or user.profile.user_type == 'admin'):
+            if next_url == '/admin-dashboard/' and not _is_admin_user(user):
                 logout(request)
                 messages.error(request, "That account is not allowed to access the admin portal.")
                 return redirect('/login/?next=/admin-dashboard/')
@@ -152,7 +217,7 @@ def logout_view(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_superuser)
+@user_passes_test(_is_admin_user)
 def sync_users_from_excel_view(request):
     result = sync_users_from_excel()
     messages.success(request, f"Excel sync complete. Created {result['created']}, skipped {result['skipped']}.")
@@ -226,13 +291,13 @@ def edit_profile_view(request):
 @login_required
 def delete_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
-    if request.user.is_superuser or appointment.client == request.user or appointment.lawyer == request.user:
+    if _is_admin_user(request.user) or appointment.client == request.user or appointment.lawyer == request.user:
         appointment.delete()
         messages.success(request, 'Appointment deleted successfully.')
     else:
         messages.error(request, 'You are not authorized to delete this appointment.')
 
-    if request.user.is_superuser:
+    if _is_admin_user(request.user):
         return redirect('/admin/manage-appointments/')
     return redirect('/dashboard/')
 
@@ -242,6 +307,9 @@ def delete_appointment(request, appointment_id):
 # ======================
 @login_required
 def lawyer_list_view(request):
+
+    if not Profile.objects.filter(user_type='lawyer').exists():
+        ensure_demo_data(create_admin=True)
 
     query = request.GET.get('q')
     recommendation_items = recommend_lawyers(query or "")
@@ -280,22 +348,26 @@ def legal_triage_view(request):
 @login_required
 def book_appointment_view(request, lawyer_id):
 
-    if request.user.profile.user_type == 'admin':
+    if _is_admin_user(request.user):
         messages.error(request, "Admin users should manage appointments from the Admin Dashboard.")
         return redirect('/admin-dashboard/')
 
     lawyer_profile = get_object_or_404(Profile, id=lawyer_id, user_type='lawyer')
 
     if request.method == 'POST':
-        issue_text = request.POST.get('message')
-        appointment = Appointment.objects.create(
-            client=request.user,
-            lawyer=lawyer_profile.user,
-            message=issue_text,
-            appointment_date=request.POST.get('date'),
-            appointment_time=request.POST.get('time'),
-            mobile_number=request.POST.get('mobile_number')
-        )
+        try:
+            appointment = _create_pending_appointment(
+                client=request.user,
+                lawyer_profile=lawyer_profile,
+                message=request.POST.get('message', '').strip(),
+                appointment_date=_parse_booking_date(request.POST.get('date')),
+                appointment_time=_parse_booking_time(request.POST.get('time')),
+                mobile_number=request.POST.get('mobile_number', '').strip(),
+            )
+        except (ValueError, ValidationError, IntegrityError) as exc:
+            logger.warning("Manual booking failed for user %s: %s", request.user.id, exc)
+            messages.error(request, exc.messages[0] if hasattr(exc, 'messages') else str(exc))
+            return redirect(f'/book/{lawyer_profile.id}/')
 
         messages.success(request, "Appointment booked. You can share it on WhatsApp.")
         return redirect(f'/appointment/{appointment.id}/confirmation/')
@@ -432,7 +504,7 @@ def invoice_view(request, appointment_id):
 
 @login_required
 def admin_create_user(request):
-    if not request.user.is_superuser:
+    if not _is_admin_user(request.user):
         return redirect('/dashboard/')
 
     if request.method == 'POST':
@@ -468,6 +540,10 @@ def admin_create_user(request):
                 except (ValueError, TypeError):
                     profile.experience = 0
             profile.save()
+            if user_type == 'admin':
+                user.is_staff = True
+                user.is_superuser = True
+                user.save()
 
             append_user_to_excel(user, password=password)
             messages.success(request, f"{user_type.title()} {username} created successfully.")
@@ -478,7 +554,7 @@ def admin_create_user(request):
 
 @login_required
 def admin_create_lawyer(request):
-    if not request.user.is_superuser:
+    if not _is_admin_user(request.user):
         return redirect('/dashboard/')
 
     if request.method == 'POST':
@@ -528,7 +604,7 @@ def admin_create_lawyer(request):
 
 @login_required
 def admin_assign_lawyers(request):
-    if not request.user.is_superuser:
+    if not _is_admin_user(request.user):
         return redirect('/dashboard/')
 
     if request.method == 'POST':
@@ -555,7 +631,7 @@ def admin_assign_lawyers(request):
 
 @login_required
 def admin_manage_appointments(request):
-    if not request.user.is_superuser:
+    if not _is_admin_user(request.user):
         return redirect('/dashboard/')
 
     appointments = Appointment.objects.all().order_by('-created_at')
@@ -624,7 +700,7 @@ def admin_manage_appointments(request):
 
 @login_required
 def admin_dashboard_view(request):
-    if not request.user.is_superuser:
+    if not _is_admin_user(request.user):
         return redirect('/dashboard/')
 
     total_users = User.objects.count()
@@ -774,7 +850,7 @@ def appointment_confirmation_view(request, appointment_id):
 @login_required
 def appointment_receipt_view(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
-    if request.user not in [appointment.client, appointment.lawyer] and not request.user.is_superuser:
+    if request.user not in [appointment.client, appointment.lawyer] and not _is_admin_user(request.user):
         return redirect('/dashboard/')
 
     lawyer_profile = appointment.lawyer.profile
@@ -895,6 +971,8 @@ def legal_ai_view(request):
 @login_required
 def ai_booking_chat_view(request):
     """Interactive AI booking chat with predefined options"""
+    if not Profile.objects.filter(user_type='lawyer').exists():
+        ensure_demo_data(create_admin=True)
 
     # Get or create conversation
     conversation, created = AIConversation.objects.get_or_create(
@@ -919,21 +997,29 @@ def ai_booking_chat_view(request):
                 conversation.save()
 
             elif option_type == "lawyer":
-                conversation.state = 'date_selection'
-                conversation.selected_lawyer_id = int(option_id)
-                conversation.save()
+                lawyer_profile = Profile.objects.filter(id=option_id, user_type='lawyer').first()
+                if not lawyer_profile:
+                    messages.error(request, "Please choose one of the available lawyers.")
+                else:
+                    conversation.state = 'date_selection'
+                    conversation.selected_lawyer_id = lawyer_profile.id
+                    conversation.save()
 
             elif option_type == "date":
-                from datetime import datetime
-                conversation.state = 'time_selection'
-                conversation.selected_date = datetime.fromisoformat(option_id).date()
-                conversation.save()
+                try:
+                    conversation.state = 'time_selection'
+                    conversation.selected_date = _parse_booking_date(option_id)
+                    conversation.save()
+                except ValueError as exc:
+                    messages.error(request, str(exc))
 
             elif option_type == "time":
-                from datetime import datetime
-                conversation.state = 'confirmation'
-                conversation.selected_time = datetime.strptime(option_id, '%H:%M').time()
-                conversation.save()
+                try:
+                    conversation.state = 'confirmation'
+                    conversation.selected_time = _parse_booking_time(option_id)
+                    conversation.save()
+                except ValueError as exc:
+                    messages.error(request, str(exc))
 
             elif option_type == "confirm":
                 # Handle confirmation response
@@ -942,12 +1028,12 @@ def ai_booking_chat_view(request):
                     try:
                         lawyer_profile = Profile.objects.get(id=conversation.selected_lawyer_id, user_type='lawyer')
 
-                        appointment = Appointment.objects.create(
+                        appointment = _create_pending_appointment(
                             client=request.user,
-                            lawyer=lawyer_profile.user,
+                            lawyer_profile=lawyer_profile,
                             appointment_date=conversation.selected_date,
                             appointment_time=conversation.selected_time,
-                            status='pending'
+                            message=f"AI booking request for {lawyer_profile.specialization or 'General Legal'} consultation."
                         )
 
                         conversation.state = 'completed'
@@ -956,8 +1042,9 @@ def ai_booking_chat_view(request):
                         messages.success(request, f"Appointment booked successfully with {lawyer_profile.user.first_name} {lawyer_profile.user.last_name}!")
                         return redirect(f'/appointment/{appointment.id}/confirmation/')
 
-                    except Exception as e:
-                        messages.error(request, "Failed to book appointment. Please try again.")
+                    except (ValueError, ValidationError, IntegrityError, Profile.DoesNotExist) as exc:
+                        logger.warning("AI booking failed for user %s: %s", request.user.id, exc)
+                        messages.error(request, exc.messages[0] if hasattr(exc, 'messages') else str(exc))
                         conversation.reset()
                 elif option_id == 'no':
                     # Cancel and go back to lawyer selection

@@ -73,6 +73,10 @@
                                                     </div>
                                                 </button>
                                             </form>
+                                        {% empty %}
+                                            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
+                                                No lawyer profiles are available yet. Ask an admin to create lawyers, then start over.
+                                            </div>
                                         {% endfor %}
                                     </div>
 
@@ -103,6 +107,10 @@
                                                     {{ option.label }}
                                                 </button>
                                             </form>
+                                        {% empty %}
+                                            <div class="col-span-full rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
+                                                No time slots are available for this date. Please start over and choose another date.
+                                            </div>
                                         {% endfor %}
                                     </div>
 
