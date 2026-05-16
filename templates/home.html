@@ -2,205 +2,205 @@
 
 {% block content %}
 
-<!-- HERO SECTION -->
-<section class="bg-gradient-to-r from-blue-700 to-indigo-700 text-white py-28">
-    <div class="max-w-6xl mx-auto text-center px-6">
+<section class="overflow-hidden rounded-[2rem] bg-slate-950 text-white">
+    <div class="grid gap-10 px-6 py-14 lg:grid-cols-[0.62fr_0.38fr] lg:px-12 lg:py-16">
+        <div>
+            <p class="text-sm uppercase tracking-[0.28em] text-cyan-300">LegalConnect Intelligence Platform</p>
+            <h1 class="mt-5 max-w-4xl text-4xl font-bold leading-tight md:text-6xl">
+                Legal case triage, lawyer matching, and consultation workflow in one place.
+            </h1>
+            <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+                Users can describe a legal problem in normal language. LegalConnect turns it into structured intake:
+                category, urgency, risk score, document checklist, and recommended lawyers.
+            </p>
 
-        <h1 class="text-5xl font-bold mb-6 leading-tight">
-            India's Trusted Legal Consultation Platform
-        </h1>
+            <form action="/lawyers/" method="GET" class="mt-8 grid gap-3 sm:grid-cols-[1fr_auto]">
+                <input type="text" name="q"
+                       placeholder="Describe your issue, e.g. landlord kept my deposit"
+                       class="input-field" />
+                <button type="submit" class="btn-primary">Find Lawyer</button>
+            </form>
 
-        <p class="text-xl text-blue-100 mb-10">
-            Connect with verified lawyers across all legal categories.
-        </p>
-
-        <!-- SEARCH BAR -->
-        <form action="/lawyers/" method="GET" class="flex flex-col gap-4 sm:flex-row justify-center items-center mb-6">
-            <input type="text" name="q"
-                   placeholder="Search lawyers by specialization..."
-                   class="input-field w-full sm:w-1/2" />
-
-            <button type="submit" class="btn-primary w-full sm:w-auto">Search</button>
-        </form>
-
-        <!-- AI BUTTON -->
-        <div class="flex flex-col gap-4 sm:flex-row justify-center">
-            <a href="/ai-legal-assistant/" class="btn-secondary w-full sm:w-auto justify-center">
-                🤖 AI Legal Assistant
-            </a>
-            <a href="/ai-booking-chat/" class="btn-primary w-full sm:w-auto justify-center">
-                📅 Book with AI Chat
-            </a>
+            <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+                <a href="/legal-triage/" class="btn-primary">Run Case Triage</a>
+                <a href="/ai-booking-chat/" class="btn-secondary bg-white text-slate-900">Book with AI</a>
+                <a href="/ai-legal-assistant/" class="btn-secondary bg-white text-slate-900">Ask Legal AI</a>
+            </div>
         </div>
 
-        {% if show_excel_sync %}
-        <div class="mt-8 flex justify-center">
-            <a href="/sync-users/" class="btn-secondary w-full sm:w-auto justify-center">
-                📥 Sync Users from Excel
-            </a>
+        <div class="rounded-3xl border border-slate-700 bg-white p-6 text-slate-900">
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-blue-600">Live Platform Signals</p>
+            <div class="mt-6 grid gap-4">
+                <div class="rounded-2xl bg-slate-50 p-5">
+                    <p class="text-sm text-slate-500">Total Bookings</p>
+                    <p class="mt-2 text-3xl font-bold">{{ booking_insights.total_bookings }}</p>
+                </div>
+                <div class="rounded-2xl bg-slate-50 p-5">
+                    <p class="text-sm text-slate-500">Most Requested Category</p>
+                    <p class="mt-2 text-2xl font-bold">{{ booking_insights.top_category }}</p>
+                </div>
+                <div class="rounded-2xl bg-slate-50 p-5">
+                    <p class="text-sm text-slate-500">Peak Consultation Time</p>
+                    <p class="mt-2 text-2xl font-bold">{{ booking_insights.peak_time }}</p>
+                </div>
+                <div class="rounded-2xl bg-emerald-50 p-5">
+                    <p class="text-sm text-emerald-700">3-Day Demand Forecast</p>
+                    <p class="mt-2 text-3xl font-bold text-emerald-900">{{ booking_insights.next_three_day_forecast }}</p>
+                </div>
+            </div>
         </div>
-        {% endif %}
-
     </div>
 </section>
-{% if not user.is_authenticated %}
-<div class="mt-6">
-    <a href="/login/"
-    class="bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold shadow hover:scale-105 transition">
-        Login to Continue
-    </a>
-</div>
+
+{% if show_excel_sync %}
+<section class="mt-6 flex justify-center">
+    <a href="/sync-users/" class="btn-secondary">Sync Users from Excel</a>
+</section>
 {% endif %}
 
-<!-- CATEGORIES -->
-<section class="py-20 bg-gray-100">
-    <div class="max-w-6xl mx-auto px-6">
-
-        <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">
-            Popular Legal Categories
-        </h2>
-
-        <div class="grid md:grid-cols-4 gap-8">
-
-            <div class="bg-white p-8 rounded-2xl shadow hover:shadow-2xl hover:scale-105 transition duration-300 text-center">
-                <div class="text-3xl mb-3">🚔</div>
-                <h3 class="font-semibold text-lg">Criminal Law</h3>
-                <p class="text-gray-500 text-sm mt-2">FIR, Bail, Court Cases</p>
-            </div>
-
-            <div class="bg-white p-8 rounded-2xl shadow hover:shadow-2xl hover:scale-105 transition duration-300 text-center">
-                <div class="text-3xl mb-3">👨‍👩‍👧</div>
-                <h3 class="font-semibold text-lg">Family Law</h3>
-                <p class="text-gray-500 text-sm mt-2">Divorce, Custody</p>
-            </div>
-
-            <div class="bg-white p-8 rounded-2xl shadow hover:shadow-2xl hover:scale-105 transition duration-300 text-center">
-                <div class="text-3xl mb-3">🏢</div>
-                <h3 class="font-semibold text-lg">Corporate Law</h3>
-                <p class="text-gray-500 text-sm mt-2">Business, Contracts</p>
-            </div>
-
-            <div class="bg-white p-8 rounded-2xl shadow hover:shadow-2xl hover:scale-105 transition duration-300 text-center">
-                <div class="text-3xl mb-3">🏠</div>
-                <h3 class="font-semibold text-lg">Property Law</h3>
-                <p class="text-gray-500 text-sm mt-2">Land, Ownership</p>
-            </div>
-
+<section class="py-14">
+    <div class="grid gap-6 md:grid-cols-3">
+        <div class="card bg-white p-7">
+            <p class="text-sm uppercase tracking-[0.22em] text-blue-600">For Clients</p>
+            <h2 class="mt-3 text-2xl font-semibold text-slate-900">Know what kind of lawyer you need</h2>
+            <p class="mt-3 text-slate-600">Case triage identifies urgency, documents, next actions, and suitable lawyers before booking.</p>
+        </div>
+        <div class="card bg-white p-7">
+            <p class="text-sm uppercase tracking-[0.22em] text-emerald-600">For Lawyers</p>
+            <h2 class="mt-3 text-2xl font-semibold text-slate-900">Receive better case context</h2>
+            <p class="mt-3 text-slate-600">Lawyers get appointment details, uploaded documents, chat, invoices, and client summaries.</p>
+        </div>
+        <div class="card bg-white p-7">
+            <p class="text-sm uppercase tracking-[0.22em] text-rose-600">For Admins</p>
+            <h2 class="mt-3 text-2xl font-semibold text-slate-900">Manage operations with analytics</h2>
+            <p class="mt-3 text-slate-600">Admins can monitor risk queues, workload, booking trends, revenue, and lawyer assignment.</p>
         </div>
     </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="py-20 bg-white">
-    <div class="max-w-6xl mx-auto px-6 text-center">
-
-        <h2 class="text-3xl font-bold mb-12 text-gray-800">
-            How LegalConnect Works
-        </h2>
-
-        <div class="grid md:grid-cols-3 gap-10">
-
-            <div class="p-6">
-                <div class="text-5xl mb-4">🔎</div>
-                <h3 class="font-semibold text-xl mb-2">Search Lawyer</h3>
-                <p class="text-gray-600">
-                    Browse lawyers by category and expertise.
-                </p>
+<section class="rounded-[2rem] bg-white p-8 shadow-card">
+    <div class="grid gap-8 lg:grid-cols-[0.38fr_0.62fr]">
+        <div>
+            <p class="text-sm uppercase tracking-[0.24em] text-blue-600">Core USP</p>
+            <h2 class="mt-3 text-3xl font-bold text-slate-900">Legal Intelligence Engine</h2>
+            <p class="mt-4 text-slate-600">
+                The project's data-science layer makes the platform different from a normal booking website.
+                It helps solve a real-world problem: clients often cannot classify legal issues or judge urgency.
+            </p>
+            <a href="/legal-triage/" class="btn-primary mt-6">Try Case Triage</a>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <h3 class="font-semibold text-slate-900">Urgency Scoring</h3>
+                <p class="mt-2 text-sm text-slate-600">Detects signals like court dates, threats, eviction, fraud, and deadlines.</p>
             </div>
-
-            <div class="p-6">
-                <div class="text-5xl mb-4">📅</div>
-                <h3 class="font-semibold text-xl mb-2">Book Consultation</h3>
-                <p class="text-gray-600">
-                    Send consultation request instantly.
-                </p>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <h3 class="font-semibold text-slate-900">Lawyer Match Score</h3>
+                <p class="mt-2 text-sm text-slate-600">Ranks lawyers using specialization, experience, rating, fee, and workload.</p>
             </div>
-
-            <div class="p-6">
-                <div class="text-5xl mb-4">⚖️</div>
-                <h3 class="font-semibold text-xl mb-2">Resolve Your Case</h3>
-                <p class="text-gray-600">
-                    Get professional legal advice.
-                </p>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <h3 class="font-semibold text-slate-900">Document Checklist</h3>
+                <p class="mt-2 text-sm text-slate-600">Suggests what the client should prepare for each case type.</p>
             </div>
-
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <h3 class="font-semibold text-slate-900">Admin Routing Flags</h3>
+                <p class="mt-2 text-sm text-slate-600">Highlights urgent or complex cases that need faster assignment.</p>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- HOME ANALYTICS -->
-<section class="py-20 bg-gray-100 text-slate-900">
-    <div class="max-w-6xl mx-auto px-6">
-        <h2 class="text-3xl font-bold text-center mb-10">Lawyer Booking Analytics</h2>
-        <div class="grid md:grid-cols-4 gap-6">
-            <div class="card p-6 bg-white">
-                <p class="text-sm uppercase tracking-wide text-blue-600">Total Bookings</p>
-                <p class="text-4xl font-bold mt-4 text-slate-900">{{ booking_insights.total_bookings }}</p>
-                <p class="text-sm text-slate-500 mt-2">Bookings recorded in dataset</p>
+<section class="py-14">
+    <div class="flex flex-col gap-3 text-center">
+        <p class="text-sm uppercase tracking-[0.24em] text-blue-600">Practice Areas</p>
+        <h2 class="text-3xl font-bold text-slate-900">Popular Legal Categories</h2>
+    </div>
+    <div class="mt-8 grid gap-5 md:grid-cols-4">
+        <a href="/lawyers/?q=criminal bail police case" class="card bg-white p-6 hover:-translate-y-1 transition">
+            <h3 class="text-lg font-semibold text-slate-900">Criminal Law</h3>
+            <p class="mt-2 text-sm text-slate-600">FIR, bail, police notice, court cases.</p>
+        </a>
+        <a href="/lawyers/?q=divorce custody family dispute" class="card bg-white p-6 hover:-translate-y-1 transition">
+            <h3 class="text-lg font-semibold text-slate-900">Family Law</h3>
+            <p class="mt-2 text-sm text-slate-600">Divorce, custody, maintenance, domestic disputes.</p>
+        </a>
+        <a href="/lawyers/?q=property tenant landlord ownership" class="card bg-white p-6 hover:-translate-y-1 transition">
+            <h3 class="text-lg font-semibold text-slate-900">Property Law</h3>
+            <p class="mt-2 text-sm text-slate-600">Land, rent, ownership, deposit disputes.</p>
+        </a>
+        <a href="/lawyers/?q=cyber fraud hacked upi" class="card bg-white p-6 hover:-translate-y-1 transition">
+            <h3 class="text-lg font-semibold text-slate-900">Cyber Law</h3>
+            <p class="mt-2 text-sm text-slate-600">UPI fraud, hacked accounts, online harassment.</p>
+        </a>
+    </div>
+</section>
+
+<section class="rounded-[2rem] bg-slate-900 p-8 text-white">
+    <div class="grid gap-8 lg:grid-cols-2">
+        <div>
+            <p class="text-sm uppercase tracking-[0.24em] text-cyan-300">How It Works</p>
+            <h2 class="mt-3 text-3xl font-bold">From problem description to booked consultation</h2>
+        </div>
+        <div class="grid gap-4">
+            <div class="rounded-2xl border border-slate-700 p-5">
+                <p class="font-semibold">1. Describe the issue</p>
+                <p class="mt-1 text-sm text-slate-300">The user writes the problem in natural language.</p>
             </div>
-            <div class="card p-6 bg-white">
-                <p class="text-sm uppercase tracking-wide text-emerald-600">Top Category</p>
-                <p class="text-4xl font-bold mt-4 text-slate-900">{{ booking_insights.top_category }}</p>
-                <p class="text-sm text-slate-500 mt-2">Most requested legal service</p>
+            <div class="rounded-2xl border border-slate-700 p-5">
+                <p class="font-semibold">2. Get triage report</p>
+                <p class="mt-1 text-sm text-slate-300">The system scores urgency, risk, complexity, and documents.</p>
             </div>
-            <div class="card p-6 bg-white">
-                <p class="text-sm uppercase tracking-wide text-orange-600">Top Service</p>
-                <p class="text-4xl font-bold mt-4 text-slate-900">{{ booking_insights.top_service }}</p>
-                <p class="text-sm text-slate-500 mt-2">Most booked support type</p>
+            <div class="rounded-2xl border border-slate-700 p-5">
+                <p class="font-semibold">3. Book the best-fit lawyer</p>
+                <p class="mt-1 text-sm text-slate-300">Recommendations use specialization, experience, fee, rating, and workload.</p>
             </div>
-            <div class="card p-6 bg-white">
-                <p class="text-sm uppercase tracking-wide text-rose-600">Peak Time</p>
-                <p class="text-4xl font-bold mt-4 text-slate-900">{{ booking_insights.peak_time }}</p>
-                <p class="text-sm text-slate-500 mt-2">Most booked time slot</p>
+        </div>
+    </div>
+</section>
+
+<section class="py-14">
+    <div class="grid gap-6 lg:grid-cols-2">
+        <div class="card bg-white p-7">
+            <h3 class="text-xl font-semibold text-slate-900">Top Lawyers This Week</h3>
+            <div class="mt-5 space-y-3">
+                {% for lawyer in booking_insights.top_lawyers %}
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="font-semibold text-slate-800">{{ lawyer.label }}</p>
+                        <p class="mt-1 text-sm text-slate-600">{{ lawyer.count }} bookings</p>
+                    </div>
+                {% empty %}
+                    <p class="text-slate-500">No booking analytics available yet.</p>
+                {% endfor %}
             </div>
         </div>
 
-        <div class="mt-10 grid gap-6 lg:grid-cols-2">
-            <div class="card p-6 bg-white">
-                <h3 class="text-xl font-semibold text-slate-900 mb-4">Top Lawyers This Week</h3>
-                <div class="space-y-3">
-                    {% for lawyer in booking_insights.top_lawyers %}
-                        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                            <p class="text-sm text-slate-600">{{ lawyer.label }}</p>
-                            <p class="mt-2 text-lg font-semibold text-slate-900">{{ lawyer.count }} bookings</p>
+        <div class="card bg-white p-7">
+            <h3 class="text-xl font-semibold text-slate-900">Legal Updates</h3>
+            <div class="mt-5 space-y-4">
+                {% for update in legal_updates %}
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">{{ update.tag }}</span>
+                            <span class="text-xs text-slate-500">{{ update.time_ago }}</span>
                         </div>
-                    {% endfor %}
-                    {% if booking_insights.top_lawyers|length == 0 %}
-                        <p class="text-slate-500">No booking analytics available yet.</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="card p-6 bg-white">
-                <h3 class="text-xl font-semibold text-slate-900 mb-4">Latest Legal Updates</h3>
-                <div class="space-y-4">
-                    {% for update in legal_updates %}
-                        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                            <div class="flex items-center justify-between gap-3">
-                                <span class="text-sm text-blue-600 uppercase tracking-[0.24em]">{{ update.tag }}</span>
-                                <span class="text-xs text-slate-500">{{ update.time_ago }}</span>
-                            </div>
-                            <h4 class="mt-3 text-lg font-semibold text-slate-900">{{ update.headline }}</h4>
-                            <p class="mt-2 text-slate-600 text-sm">{{ update.description }}</p>
-                            <p class="mt-3 text-xs text-slate-500">Source: {{ update.source }}</p>
-                        </div>
-                    {% endfor %}
-                </div>
+                        <h4 class="mt-2 font-semibold text-slate-900">{{ update.headline }}</h4>
+                        <p class="mt-1 text-sm text-slate-600">{{ update.description }}</p>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 </section>
 
-<!-- CTA -->
-<section class="bg-blue-600 text-white py-16 text-center">
-    <h2 class="text-3xl font-bold mb-6">
-        Need Legal Help Today?
-    </h2>
-
-    <a href="/lawyers/"
-       class="bg-white text-blue-600 px-8 py-3 rounded-xl font-semibold shadow hover:shadow-lg transition">
-        Find a Lawyer
-    </a>
+<section class="rounded-[2rem] bg-blue-700 px-8 py-12 text-center text-white">
+    <h2 class="text-3xl font-bold">Need legal help today?</h2>
+    <p class="mx-auto mt-3 max-w-2xl text-blue-100">
+        Start with triage if you are unsure, or directly browse lawyers if you already know the category.
+    </p>
+    <div class="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+        <a href="/legal-triage/" class="btn-secondary bg-white text-blue-700">Start Triage</a>
+        <a href="/lawyers/" class="btn-secondary bg-white text-blue-700">Find a Lawyer</a>
+    </div>
 </section>
 
 {% endblock %}

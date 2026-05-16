@@ -36,6 +36,7 @@
             <p class="text-sm uppercase tracking-[0.24em] text-slate-400">Quick actions</p>
             <div class="mt-6 space-y-4">
                 <a href="/lawyers/" class="btn-primary w-full justify-center">Browse Lawyers</a>
+                <a href="/legal-triage/" class="btn-secondary w-full justify-center">Case Triage</a>
                 <a href="/ai-booking-chat/" class="btn-secondary w-full justify-center">Book through AI</a>
                 <a href="/ai-legal-assistant/" class="btn-secondary w-full justify-center">Legal AI Assistant</a>
                 <a href="/profile/edit/" class="btn-secondary w-full justify-center">Edit My Profile</a>
@@ -98,6 +99,7 @@
                                 <a href="/appointment/{{ a.id }}/review/" class="btn-secondary">Leave Review</a>
                             {% endif %}
                         {% endif %}
+                        <a href="/appointment/{{ a.id }}/receipt/" class="btn-secondary">Receipt</a>
                     </div>
                 </div>
             {% empty %}

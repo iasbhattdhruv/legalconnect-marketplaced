@@ -1,4 +1,5 @@
 # Python
+.env
 __pycache__/
 *.pyc
 *.pyo
@@ -6,21 +7,17 @@ __pycache__/
 *.sqlite3
 
 # Virtual environment
+.venv/
 venv/
 env/
 
-# VS Code
-.vscode/
-
-# Environment variables
-.env
-
-# Static files collected
-staticfiles/
-
-# Local media uploads and generated data
+# Local database, media uploads, and generated data
+db.sqlite3
 media/
+staticfiles/
 users.xlsx
 
-# Mac
+# Editor and OS files
+.idea/
+.vscode/
 .DS_Store

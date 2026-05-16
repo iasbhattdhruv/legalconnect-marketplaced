@@ -12,6 +12,7 @@
 
         <form method="POST" class="space-y-5">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
 
             <div>
                 <label class="mb-2 block text-sm font-semibold text-slate-200">Username</label>

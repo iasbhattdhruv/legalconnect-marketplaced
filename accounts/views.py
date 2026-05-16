@@ -9,6 +9,7 @@ from django.utils import timezone
 from datetime import date, datetime, timedelta
 from openpyxl import Workbook, load_workbook
 import os
+import urllib.parse
 
 from .models import (
     Profile,
@@ -28,7 +29,7 @@ from .ai_engine.knowledge_base import get_knowledge, get_topics
 from .analytics import summarize_booking_data
 from .excel_utils import append_user_to_excel, sync_users_from_excel
 from .legal_updates import get_latest_legal_updates
-from .ml_features import build_case_guidance, classify_legal_issue, recommend_lawyers
+from .ml_features import build_case_guidance, build_triage_report, classify_legal_issue, recommend_lawyers
 
 
 # ======================
@@ -44,6 +45,25 @@ def home_view(request):
     })
 
 
+def user_portal_entry(request):
+    if request.user.is_authenticated:
+        if request.user.is_superuser or request.user.profile.user_type == 'admin':
+            messages.success(request, "Admin session detected. Opening admin dashboard.")
+            return redirect('/admin-dashboard/')
+        return redirect('/dashboard/')
+    return redirect('/login/?next=/dashboard/')
+
+
+def admin_portal_entry(request):
+    if request.user.is_authenticated:
+        if request.user.is_superuser or request.user.profile.user_type == 'admin':
+            return redirect('/admin-dashboard/')
+        logout(request)
+        messages.error(request, "Admin portal requires an admin account. Please login with admin credentials.")
+        return redirect('/login/?next=/admin-dashboard/')
+    return redirect('/login/?next=/admin-dashboard/')
+
+
 # ======================
 # REGISTER
 # ======================
@@ -55,6 +75,8 @@ def register_view(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         user_type = request.POST.get('user_type')
+        if user_type not in ('client', 'lawyer'):
+            user_type = 'client'
 
         gender = request.POST.get('gender')
         birthdate = request.POST.get('birthdate')
@@ -76,12 +98,6 @@ def register_view(request):
             email=email,
             password=password
         )
-
-        # Make admin users superusers
-        if user_type == 'admin':
-            user.is_staff = True
-            user.is_superuser = True
-            user.save()
 
         profile = user.profile
         profile.user_type = user_type
@@ -108,16 +124,23 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        next_url = request.POST.get('next') or request.GET.get('next') or '/dashboard/'
 
         user = authenticate(request, username=username, password=password)
 
         if user:
             login(request, user)
-            return redirect('/dashboard/')
+            if next_url == '/admin-dashboard/' and not (user.is_superuser or user.profile.user_type == 'admin'):
+                logout(request)
+                messages.error(request, "That account is not allowed to access the admin portal.")
+                return redirect('/login/?next=/admin-dashboard/')
+            return redirect(next_url)
         else:
             messages.error(request, "Invalid credentials")
 
-    return render(request, 'login.html')
+    return render(request, 'login.html', {
+        'next': request.GET.get('next', '/dashboard/')
+    })
 
 
 # ======================
@@ -230,6 +253,24 @@ def lawyer_list_view(request):
         'query': query,
         'recommendation_items': recommendation_items,
         'query_analysis': query_analysis,
+    })
+
+
+@login_required
+def legal_triage_view(request):
+    report = None
+    issue_text = ""
+
+    if request.method == "POST":
+        issue_text = request.POST.get("issue", "").strip()
+        if issue_text:
+            report = build_triage_report(issue_text, limit=5)
+        else:
+            messages.error(request, "Please describe your legal issue for triage.")
+
+    return render(request, "legal_triage.html", {
+        "report": report,
+        "issue_text": issue_text,
     })
 
 
@@ -731,6 +772,40 @@ def appointment_confirmation_view(request, appointment_id):
 
 
 @login_required
+def appointment_receipt_view(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    if request.user not in [appointment.client, appointment.lawyer] and not request.user.is_superuser:
+        return redirect('/dashboard/')
+
+    lawyer_profile = appointment.lawyer.profile
+    receipt_text = "\n".join([
+        "LegalConnect Booking Receipt",
+        f"Receipt No: LC-RCPT-{appointment.id:05d}",
+        f"Booking Ref: LC-{appointment.id:05d}",
+        f"Client: {appointment.client.get_full_name() or appointment.client.username}",
+        f"Lawyer: {appointment.lawyer.get_full_name() or appointment.lawyer.username}",
+        f"Specialization: {lawyer_profile.specialization or 'General Legal'}",
+        f"Date: {appointment.appointment_date.strftime('%d %B %Y')}",
+        f"Time: {appointment.appointment_time.strftime('%I:%M %p')}",
+        f"Status: {appointment.status.title()}",
+        f"Consultation Fee: {lawyer_profile.display_fee}",
+        f"Case Summary: {appointment.message or 'N/A'}",
+    ])
+    whatsapp_receipt_link = None
+    if appointment.mobile_number:
+        phone = appointment.mobile_number.replace('+', '').replace('-', '').replace(' ', '')
+        whatsapp_receipt_link = f"https://wa.me/{phone}?text={urllib.parse.quote(receipt_text)}"
+
+    return render(request, 'appointment_receipt.html', {
+        'appointment': appointment,
+        'lawyer': lawyer_profile,
+        'receipt_number': f"LC-RCPT-{appointment.id:05d}",
+        'booking_reference': f"LC-{appointment.id:05d}",
+        'whatsapp_receipt_link': whatsapp_receipt_link,
+    })
+
+
+@login_required
 def whatsapp_share_view(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     if appointment.client != request.user or not appointment.whatsapp_link:
@@ -770,9 +845,9 @@ def legal_ai_view(request):
                 "\n".join(knowledge.get('links', [])) if knowledge.get('links') else "No direct link available. Use official portals.",
             ])
         else:
-            guidance = build_case_guidance(user_message)
-            analysis = guidance['analysis']
-            recommended = recommend_lawyers(user_message, limit=3)
+            report = build_triage_report(user_message, limit=3)
+            analysis = report['analysis']
+            recommended = report['recommended_lawyers']
             lawyer_lines = [
                 f"- {item['profile'].user.get_full_name() or item['profile'].user.username} "
                 f"({item['profile'].specialization or 'General Legal'}) - Match score {item['score']}%"
@@ -784,14 +859,20 @@ def legal_ai_view(request):
                 f"Detected category: {analysis['category']}",
                 f"Urgency level: {analysis['urgency']}",
                 f"Confidence: {analysis['confidence']}%",
+                f"Complexity: {report['complexity']['label']} ({report['complexity']['score']}/100)",
+                f"Risk score: {report['risk_score']}/100 - {report['risk_label']}",
+                f"Recommended response window: {report['priority_window']}",
                 "",
                 "Suggested next steps:",
-                *[f"{idx + 1}. {step}" for idx, step in enumerate(guidance['steps'])],
+                *[f"{idx + 1}. {step}" for idx, step in enumerate(report['next_actions'])],
+                "",
+                "Documents to keep ready:",
+                *[f"- {document}" for document in report['documents']],
                 "",
                 "Recommended lawyers:",
                 *(lawyer_lines or ["- No lawyer profiles are available yet."]),
                 "",
-                guidance['disclaimer'],
+                report['disclaimer'],
             ])
 
         AIChat.objects.create(
@@ -896,7 +977,7 @@ def ai_booking_chat_view(request):
     if conversation.state == 'welcome':
         messages_list.append({
             'type': 'ai',
-            'content': "👋 Welcome to LegalConnect AI Booking Assistant!\n\nI can help you book a consultation with a qualified lawyer. Let's get started!",
+            'content': "Welcome to LegalConnect AI Booking Assistant.\n\nI can help you book a consultation with a qualified lawyer. Let's get started.",
             'options': current_options
         })
 
@@ -958,7 +1039,7 @@ def ai_booking_chat_view(request):
             },
             {
                 'type': 'ai',
-                'content': f"Perfect! Here's a summary of your appointment:\n\n📅 Date: {conversation.selected_date.strftime('%A, %B %d, %Y')}\n⏰ Time: {conversation.selected_time.strftime('%I:%M %p')}\n👨‍⚖️ Lawyer: {lawyer.user.first_name} {lawyer.user.last_name}\n📋 Specialization: {lawyer.specialization or 'General Legal'}\n\nWould you like to confirm this appointment?",
+                'content': f"Perfect! Here's a summary of your appointment:\n\nDate: {conversation.selected_date.strftime('%A, %B %d, %Y')}\nTime: {conversation.selected_time.strftime('%I:%M %p')}\nLawyer: {lawyer.user.first_name} {lawyer.user.last_name}\nSpecialization: {lawyer.specialization or 'General Legal'}\n\nWould you like to confirm this appointment?",
                 'options': current_options
             }
         ])
@@ -966,13 +1047,13 @@ def ai_booking_chat_view(request):
     elif conversation.state == 'completed':
         messages_list.append({
             'type': 'ai',
-            'content': "🎉 Your appointment has been successfully booked! You will receive a confirmation email shortly. You can also share the appointment details on WhatsApp.",
+            'content': "Your appointment has been successfully booked. You can share the appointment details on WhatsApp from the confirmation page.",
             'options': [{'text': 'Book Another Appointment', 'action': 'reset'}]
         })
 
     return render(request, 'ai_booking_chat.html', {
         'conversation': conversation,
-        'messages': messages_list,
+        'chat_messages': messages_list,
         'current_options': current_options,
     })
 
