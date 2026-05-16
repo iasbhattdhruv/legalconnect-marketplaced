@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6 max-w-4xl mx-auto">
+    <div class="card p-8 shadow-card">
+        <h1 class="text-3xl font-semibold text-white">Appointment Chat</h1>
+        <p class="text-slate-400 mt-2">Message your lawyer or client about this appointment.</p>
+    </div>
+
+    <div class="card p-8 shadow-card space-y-4">
+        {% for msg in messages %}
+            <div class="rounded-3xl p-4 {% if msg.sender == request.user %}bg-slate-800 text-white{% else %}bg-slate-950/80 text-slate-200{% endif %}">
+                <p class="text-sm text-slate-400">{{ msg.sender.username }} · {{ msg.created_at|date:'j M Y H:i' }}</p>
+                <p class="mt-2">{{ msg.message }}</p>
+            </div>
+        {% empty %}
+            <p class="text-slate-400">No messages yet. Start the conversation below.</p>
+        {% endfor %}
+    </div>
+
+    <form method="POST" class="card p-6 shadow-card space-y-4">
+        {% csrf_token %}
+        <textarea name="message" rows="4" class="input-field" placeholder="Type your message here" required></textarea>
+        <button type="submit" class="btn-primary">Send Message</button>
+    </form>
+</div>
+{% endblock %}

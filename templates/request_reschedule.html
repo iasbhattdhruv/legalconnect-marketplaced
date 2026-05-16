@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card p-8 shadow-card max-w-3xl mx-auto">
+    <h1 class="text-3xl font-semibold text-white mb-4">Request Reschedule</h1>
+    <p class="text-slate-400 mb-6">Submit a new preferred date and time for your appointment.</p>
+
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm text-slate-300 mb-2">New date</label>
+            <input type="date" name="new_date" class="input-field" min="{{ today }}" required>
+        </div>
+        <div>
+            <label class="block text-sm text-slate-300 mb-2">New time</label>
+            <input type="time" name="new_time" class="input-field" required>
+        </div>
+        <div>
+            <label class="block text-sm text-slate-300 mb-2">Reason</label>
+            <textarea name="reason" rows="4" class="input-field" placeholder="Please provide a brief reason" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary">Send Reschedule Request</button>
+    </form>
+</div>
+{% endblock %}

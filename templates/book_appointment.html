@@ -2,67 +2,103 @@
 
 {% block content %}
 
-<div class="max-w-3xl mx-auto">
+<div class="grid gap-10 lg:grid-cols-[0.85fr_0.55fr]">
+    <section class="card p-8 shadow-card bg-white">
+        <div class="flex flex-col gap-4">
+            <div>
+                <p class="text-sm uppercase tracking-[0.24em] text-blue-600">Booking</p>
+                <h1 class="text-3xl font-semibold text-slate-900">Request a consultation</h1>
+                <p class="mt-2 text-slate-600">Choose a date and time for your session with {{ lawyer.user.first_name|default:lawyer.user.username }}.</p>
+            </div>
 
-    <div class="bg-gray-900 p-10 rounded-3xl shadow-xl">
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
 
-        <!-- HEADER -->
-        <div class="text-center mb-8">
-            <h2 class="text-3xl font-bold">
-                Book Appointment
-            </h2>
-            <p class="text-gray-400">
-                With {{ lawyer.user.username }}
-            </p>
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <div>
+                        <label class="block mb-2 text-sm font-semibold text-slate-200">Date</label>
+                        <input type="date" name="date" required min="{{ today }}" class="input-field" />
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-semibold text-slate-200">Time</label>
+                        <input type="time" name="time" required class="input-field" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-semibold text-slate-700">WhatsApp/Mobile Number</label>
+                    <input type="tel" name="mobile_number" placeholder="+91 98765 43210" class="input-field" />
+                    <p class="mt-2 text-xs text-slate-500">Your WhatsApp number to share booking details.</p>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-semibold text-slate-700">Describe Your Issue</label>
+                    <textarea name="message" rows="5" class="input-field" placeholder="Explain your case briefly...">{{ request.GET.issue }}</textarea>
+                </div>
+
+                <button type="submit" class="btn-primary w-full">Confirm Appointment</button>
+            </form>
+        </div>
+    </section>
+
+    <aside class="card p-8 shadow-card bg-white">
+        <div class="flex items-center gap-4">
+            <div class="h-20 w-20 rounded-3xl bg-slate-100 grid place-items-center text-3xl">
+                {% if lawyer.photo %}
+                    <img src="{{ lawyer.photo.url }}" alt="{{ lawyer.user.username }}" class="h-full w-full rounded-3xl object-cover" />
+                {% else %}
+                    👨‍⚖️
+                {% endif %}
+            </div>
+            <div>
+                <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Consultant</p>
+                <h2 class="text-2xl font-semibold text-slate-900">{{ lawyer.user.first_name|default:lawyer.user.username }}</h2>
+                <p class="text-slate-600">{{ lawyer.specialization|default:'General Legal Counsel' }}</p>
+            </div>
         </div>
 
-        <!-- ERROR / SUCCESS MESSAGES -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="mb-4 p-3 rounded-xl 
-                    {% if message.tags == 'error' %}bg-red-500{% else %}bg-green-500{% endif %}">
-                    {{ message }}
+        <div class="mt-8 space-y-4">
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Experience</p>
+                <p class="mt-2 text-lg font-semibold text-slate-900">{{ lawyer.experience|default:'N/A' }} years</p>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Rating</p>
+                <p class="mt-2 text-lg font-semibold text-slate-900">{{ lawyer.rating }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Consultation</p>
+                <p class="mt-2 text-lg font-semibold text-slate-900">{{ lawyer.display_fee }}</p>
+            </div>
+        </div>
+
+        <div class="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <h3 class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-600">About this lawyer</h3>
+            <p class="mt-3 text-slate-700 text-sm">{{ lawyer.summary }}</p>
+            <ul class="mt-4 space-y-2 text-slate-600 text-sm">
+                <li>• Preferred by clients for fast responses.</li>
+                <li>• Handles similar cases in your specialization.</li>
+                <li>• Online and offline consultation options available.</li>
+            </ul>
+            <a href="/ai-booking-chat/" class="btn-secondary mt-4 inline-flex">Book with AI</a>
+        </div>
+
+        {% if request.GET.issue %}
+            <div class="mt-6 rounded-3xl border border-blue-100 bg-blue-50 p-5">
+                <h3 class="text-sm font-semibold uppercase tracking-[0.24em] text-blue-700">Case intake</h3>
+                <div class="mt-4 grid gap-3">
+                    <p class="text-sm text-slate-700"><strong>Category:</strong> {{ case_guidance.analysis.category }}</p>
+                    <p class="text-sm text-slate-700"><strong>Urgency:</strong> {{ case_guidance.analysis.urgency }}</p>
+                    <p class="text-sm text-slate-700"><strong>Confidence:</strong> {{ case_guidance.analysis.confidence }}%</p>
                 </div>
-            {% endfor %}
+                <ul class="mt-4 space-y-2 text-sm text-slate-700">
+                    {% for step in case_guidance.steps %}
+                        <li>{{ forloop.counter }}. {{ step }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
         {% endif %}
-
-        <!-- FORM -->
-        <form method="POST" class="space-y-6">
-
-            {% csrf_token %}
-
-            <!-- DATE -->
-            <div>
-                <label class="block mb-2 font-semibold">Select Date</label>
-                <input type="date" name="date" required min="{{ today }}"
-                       class="w-full bg-gray-800 border border-gray-700 px-4 py-3 rounded-xl focus:outline-none">
-            </div>
-
-            <!-- TIME -->
-            <div>
-                <label class="block mb-2 font-semibold">Select Time</label>
-                <input type="time" name="time" required
-                       class="w-full bg-gray-800 border border-gray-700 px-4 py-3 rounded-xl focus:outline-none">
-            </div>
-
-            <!-- MESSAGE -->
-            <div>
-                <label class="block mb-2 font-semibold">Describe Your Issue</label>
-                <textarea name="message" rows="4"
-                          class="w-full bg-gray-800 border border-gray-700 px-4 py-3 rounded-xl focus:outline-none"
-                          placeholder="Explain your legal issue..."></textarea>
-            </div>
-
-            <!-- SUBMIT -->
-            <button type="submit"
-                    class="w-full bg-blue-600 py-3 rounded-xl hover:bg-blue-700 text-lg font-semibold">
-                Confirm Booking
-            </button>
-
-        </form>
-
-    </div>
-
+    </aside>
 </div>
 
 {% endblock %}

@@ -18,5 +18,9 @@ env/
 # Static files collected
 staticfiles/
 
+# Local media uploads and generated data
+media/
+users.xlsx
+
 # Mac
 .DS_Store

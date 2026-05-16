@@ -1,25 +1,20 @@
-from .intent_detector import detect_intent
-from .knowledge_base import get_knowledge
+def get_ai_response(message):
 
+    if not message:
+        return "Please enter a valid question."
 
-def process_query(user_input):
+    google_link = f"https://www.google.com/search?q={message.replace(' ', '+')}"
 
-    # Detect intent
-    intent = detect_intent(user_input)
+    return f"""
+Here is guidance for your query:
 
-    # Get knowledge data
-    data = get_knowledge(intent)
+👉 {message}
 
-    # ✅ If knowledge exists → return smart structured response
-    if data:
-        data["google_search"] = f"https://www.google.com/search?q={user_input}"
-        return data
+You can follow these steps:
+• Search official government website  
+• Fill required forms  
+• Upload documents if needed  
 
-    # ❌ If no knowledge → fallback to Google
-    return {
-        "advice": "I couldn't find exact structured guidance for your query. You can explore more here:",
-        "steps": [],
-        "links": [],
-        "google_search": f"https://www.google.com/search?q={user_input}",
-        "lawyer_type": None
-    }
+🔎 More info:
+{google_link}
+"""

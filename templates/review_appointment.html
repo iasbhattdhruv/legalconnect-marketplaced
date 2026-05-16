@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card p-8 shadow-card max-w-3xl mx-auto">
+    <h1 class="text-3xl font-semibold text-white mb-4">Leave a Review</h1>
+    <p class="text-slate-400 mb-6">Tell us how the consultation went and help other clients choose the right lawyer.</p>
+
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm text-slate-300 mb-2">Rating</label>
+            <select name="rating" class="input-field" required>
+                <option value="5">5 - Excellent</option>
+                <option value="4">4 - Very Good</option>
+                <option value="3">3 - Good</option>
+                <option value="2">2 - Fair</option>
+                <option value="1">1 - Poor</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm text-slate-300 mb-2">Comment</label>
+            <textarea name="comment" rows="5" class="input-field" placeholder="Share your experience" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary">Submit Review</button>
+    </form>
+</div>
+{% endblock %}

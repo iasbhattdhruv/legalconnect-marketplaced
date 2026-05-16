@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="card p-8 shadow-card bg-white">
+        <div class="flex flex-col gap-3 mb-8">
+            <p class="text-sm uppercase tracking-[0.24em] text-blue-600">Profile</p>
+            <h1 class="text-3xl font-semibold text-slate-900">Edit Your Profile</h1>
+            <p class="text-slate-600">Update your personal and professional information here.</p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">First Name</label>
+                    <input type="text" name="first_name" value="{{ request.user.first_name }}" class="input-field" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Last Name</label>
+                    <input type="text" name="last_name" value="{{ request.user.last_name }}" class="input-field" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Email</label>
+                    <input type="email" name="email" value="{{ request.user.email }}" class="input-field" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">User Type</label>
+                    <input type="text" value="{{ profile.user_type|title }}" readonly class="input-field bg-slate-100" />
+                </div>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Gender</label>
+                    <select name="gender" class="input-field">
+                        <option value="" {% if not profile.gender %}selected{% endif %}>Select gender</option>
+                        <option value="male" {% if profile.gender == 'male' %}selected{% endif %}>Male</option>
+                        <option value="female" {% if profile.gender == 'female' %}selected{% endif %}>Female</option>
+                        <option value="other" {% if profile.gender == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Birthdate</label>
+                    <input type="date" name="birthdate" value="{{ profile.birthdate }}" class="input-field" />
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-slate-700">Profession</label>
+                    <input type="text" name="profession" value="{{ profile.profession }}" class="input-field" />
+                </div>
+            </div>
+
+            {% if profile.user_type == 'lawyer' %}
+            <div class="grid gap-4 sm:grid-cols-3">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Specialization</label>
+                    <input type="text" name="specialization" value="{{ profile.specialization }}" class="input-field" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Experience (years)</label>
+                    <input type="number" name="experience" value="{{ profile.experience }}" class="input-field" min="0" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Consultation Fee</label>
+                    <input type="number" name="consultation_fee" value="{{ profile.consultation_fee }}" class="input-field" min="0" />
+                </div>
+            </div>
+            {% endif %}
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700">Bio</label>
+                <textarea name="bio" rows="4" class="input-field">{{ profile.bio }}</textarea>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <button type="submit" class="btn-primary">Save Changes</button>
+                <a href="/dashboard/" class="btn-secondary">Back to Dashboard</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card p-8 shadow-card max-w-3xl mx-auto">
+    <h1 class="text-3xl font-semibold text-white mb-4">Upload Document</h1>
+    <p class="text-slate-400 mb-6">Attach your supporting documents for this appointment.</p>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm text-slate-300 mb-2">Document title</label>
+            <input type="text" name="title" class="input-field" placeholder="Document title" required>
+        </div>
+        <div>
+            <label class="block text-sm text-slate-300 mb-2">Select file</label>
+            <input type="file" name="document" class="input-field" required>
+        </div>
+        <button type="submit" class="btn-primary">Upload Document</button>
+    </form>
+</div>
+{% endblock %}

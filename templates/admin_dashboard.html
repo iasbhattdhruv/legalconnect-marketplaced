@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="card p-8 shadow-card bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-700 text-white">
+        <h1 class="text-3xl font-semibold mb-4">Admin Dashboard</h1>
+        <p class="text-slate-200 mb-6 max-w-2xl">Manage users, review appointments, and steer the platform from a polished operations console.</p>
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-3xl border border-slate-700 bg-slate-950/90 p-6">
+                <p class="text-sm text-slate-400">Total users</p>
+                <p class="mt-3 text-3xl font-bold text-white">{{ total_users }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-700 bg-slate-950/90 p-6">
+                <p class="text-sm text-slate-400">Lawyers</p>
+                <p class="mt-3 text-3xl font-bold text-white">{{ lawyer_count }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-700 bg-slate-950/90 p-6">
+                <p class="text-sm text-slate-400">Clients</p>
+                <p class="mt-3 text-3xl font-bold text-white">{{ client_count }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-700 bg-slate-950/90 p-6">
+                <p class="text-sm text-slate-400">Invoices</p>
+                <p class="mt-3 text-3xl font-bold text-white">{{ total_invoices }} / {{ paid_invoices }} paid</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+        <div class="card p-8 shadow-card bg-white">
+            <h2 class="text-2xl font-semibold text-slate-900 mb-4">Recent appointments</h2>
+            <div class="space-y-4">
+                {% for a in latest_appointments %}
+                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-sm text-slate-500">#{{ a.id }} · {{ a.appointment_date }} · {{ a.status|title }}</p>
+                    <p class="text-sm text-slate-700">{{ a.client.username }} → {{ a.lawyer.username }}</p>
+                </div>
+                {% empty %}
+                <p class="text-slate-500">No appointments yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card p-8 shadow-card bg-white">
+            <h2 class="text-2xl font-semibold text-slate-900 mb-4">Recent reviews</h2>
+            <div class="space-y-4">
+                {% for review in recent_reviews %}
+                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-sm text-slate-500">{{ review.rating }} stars · {{ review.created_at|date:'j M Y' }}</p>
+                    <p class="text-slate-700 mt-2">{{ review.comment }}</p>
+                </div>
+                {% empty %}
+                <p class="text-slate-500">No reviews yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="card p-8 shadow-card bg-white">
+        <h2 class="text-3xl font-semibold text-slate-900 mb-6">Real-Time Analytics</h2>
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-6">
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <p class="text-sm text-slate-500">Today's Appointments</p>
+                <p class="mt-3 text-3xl font-bold text-slate-900">{{ today_appointments }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <p class="text-sm text-slate-500">This Week</p>
+                <p class="mt-3 text-3xl font-bold text-slate-900">{{ this_week_appointments }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <p class="text-sm text-slate-500">Pending</p>
+                <p class="mt-3 text-3xl font-bold text-slate-900">{{ pending_appointments }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <p class="text-sm text-slate-500">Accepted</p>
+                <p class="mt-3 text-3xl font-bold text-slate-900">{{ accepted_appointments }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <p class="text-sm text-slate-500">3-Day Forecast</p>
+                <p class="mt-3 text-3xl font-bold text-slate-900">{{ booking_insights.next_three_day_forecast }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <p class="text-sm text-slate-500">Acceptance Rate</p>
+                <p class="mt-3 text-3xl font-bold text-slate-900">{{ booking_insights.acceptance_rate }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <p class="text-sm text-slate-500">Cancellation Rate</p>
+                <p class="mt-3 text-3xl font-bold text-slate-900">{{ booking_insights.cancellation_rate }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <p class="text-sm text-slate-500">Paid Revenue</p>
+                <p class="mt-3 text-3xl font-bold text-slate-900">Rs. {{ booking_insights.total_revenue }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <p class="text-sm text-slate-500">Pending Revenue</p>
+                <p class="mt-3 text-3xl font-bold text-slate-900">Rs. {{ booking_insights.pending_revenue }}</p>
+            </div>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-2">
+            <div class="card p-6 bg-white">
+                <h3 class="text-xl font-semibold text-slate-900 mb-4">Top Lawyers This Week</h3>
+                <div class="space-y-3">
+                    {% for lawyer in booking_insights.top_lawyers %}
+                        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                            <p class="text-sm text-slate-600">{{ lawyer.label }}</p>
+                            <p class="mt-2 text-lg font-semibold text-slate-900">{{ lawyer.count }} bookings</p>
+                        </div>
+                    {% endfor %}
+                    {% if booking_insights.top_lawyers|length == 0 %}
+                        <p class="text-slate-500">No booking data available yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card p-6 bg-white">
+                <h3 class="text-xl font-semibold text-slate-900 mb-4">Booking Insights</h3>
+                <div class="space-y-4">
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-sm text-slate-500">Total Bookings</p>
+                        <p class="text-2xl font-bold text-slate-900">{{ booking_insights.total_bookings }}</p>
+                    </div>
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-sm text-slate-500">Top Category</p>
+                        <p class="text-2xl font-bold text-slate-900">{{ booking_insights.top_category }}</p>
+                    </div>
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-sm text-slate-500">Peak Time</p>
+                        <p class="text-2xl font-bold text-slate-900">{{ booking_insights.peak_time }}</p>
+                    </div>
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-sm text-slate-500">Confirmation Rate</p>
+                        <p class="text-2xl font-bold text-slate-900">{{ booking_insights.confirmed_rate }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-6 bg-white">
+                <h3 class="text-xl font-semibold text-slate-900 mb-4">Top Specializations</h3>
+                <div class="space-y-3">
+                    {% for item in booking_insights.top_specializations %}
+                        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                            <p class="text-sm text-slate-600">{{ item.label }}</p>
+                            <p class="mt-2 text-lg font-semibold text-slate-900">{{ item.count }} bookings</p>
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500">Not enough data yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card p-6 bg-white">
+                <h3 class="text-xl font-semibold text-slate-900 mb-4">Case Category Mix</h3>
+                <div class="space-y-3">
+                    {% for item in booking_insights.case_category_mix %}
+                        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                            <p class="text-sm text-slate-600">{{ item.label }}</p>
+                            <p class="mt-2 text-lg font-semibold text-slate-900">{{ item.count }} cases</p>
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500">Not enough case text yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card p-6 bg-white">
+                <h3 class="text-xl font-semibold text-slate-900 mb-4">Lawyer Workload</h3>
+                <div class="space-y-3">
+                    {% for item in booking_insights.lawyer_utilization %}
+                        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="text-sm font-semibold text-slate-700">{{ item.label }}</p>
+                                <span class="badge bg-slate-100 text-slate-900">{{ item.load_score }} load</span>
+                            </div>
+                            <p class="mt-2 text-sm text-slate-500">{{ item.specialization }} - {{ item.pending }} pending, {{ item.accepted }} accepted</p>
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500">No lawyer workload available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card p-6 bg-white">
+                <h3 class="text-xl font-semibold text-slate-900 mb-4">High-Risk Upcoming Appointments</h3>
+                <div class="space-y-3">
+                    {% for item in booking_insights.high_risk_appointments %}
+                        <div class="rounded-3xl border border-rose-100 bg-rose-50 p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="text-sm font-semibold text-slate-800">#{{ item.appointment.id }} - {{ item.category }}</p>
+                                <span class="badge bg-rose-100 text-rose-700">{{ item.score }} risk</span>
+                            </div>
+                            <p class="mt-2 text-sm text-slate-600">{{ item.appointment.appointment_date }} at {{ item.appointment.appointment_time }} - {{ item.urgency }} urgency</p>
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500">No upcoming risk signals right now.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Management Actions -->
+    <div class="card p-8 shadow-card bg-white">
+        <h2 class="text-3xl font-semibold text-slate-900 mb-6">Management Actions</h2>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <a href="/admin/manage-appointments/" class="btn-primary text-center">
+                Manage Appointments
+            </a>
+            <a href="/admin/create-user/" class="btn-secondary text-center">
+                Create User
+            </a>
+            <a href="/admin/create-lawyer/" class="btn-secondary text-center">
+                Create Lawyer
+            </a>
+            <a href="/admin/assign-lawyers/" class="btn-secondary text-center">
+                Assign Lawyers
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

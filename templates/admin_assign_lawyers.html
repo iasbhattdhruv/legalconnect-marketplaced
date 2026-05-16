@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8">
+    <div class="card p-8 shadow-card bg-white">
+        <h1 class="text-3xl font-semibold text-slate-900 mb-4">Assign Lawyers</h1>
+        <p class="text-slate-600">Assign available lawyers to appointments that still need a counselor.</p>
+        <div class="mt-6 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-3xl bg-slate-950 p-5 text-white shadow-xl">
+                <p class="text-sm text-slate-300">Lawyers available</p>
+                <p class="mt-2 text-2xl font-semibold">{{ lawyers|length }}</p>
+            </div>
+            <div class="rounded-3xl bg-slate-950 p-5 text-white shadow-xl">
+                <p class="text-sm text-slate-300">Unassigned requests</p>
+                <p class="mt-2 text-2xl font-semibold">{{ appointments|length }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-8 shadow-card bg-white">
+        <h2 class="text-2xl font-semibold text-slate-900 mb-6">Unassigned Appointments</h2>
+
+        {% if appointments %}
+            <div class="space-y-4">
+                {% for appointment in appointments %}
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <p class="text-sm text-slate-500">Appointment #{{ appointment.id }} · {{ appointment.appointment_date }} · {{ appointment.appointment_time }}</p>
+                                <p class="text-lg font-semibold text-slate-900">Client: {{ appointment.client.username }} ({{ appointment.client.email }})</p>
+                                <p class="text-sm text-slate-600">Message: {{ appointment.message|default:'No message provided.' }}</p>
+                            </div>
+                            <form method="POST" class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                                {% csrf_token %}
+                                <input type="hidden" name="appointment_id" value="{{ appointment.id }}" />
+
+                                <label class="sr-only" for="lawyer-{{ appointment.id }}">Select Lawyer</label>
+                                <select id="lawyer-{{ appointment.id }}" name="lawyer_id" required
+                                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                                    <option value="">Select lawyer</option>
+                                    {% for lawyer in lawyers %}
+                                        <option value="{{ lawyer.id }}">{{ lawyer.get_full_name|default:lawyer.username }} — {{ lawyer.profile.specialization|default:'General' }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn-primary px-6 py-3">Assign</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-slate-600">
+                No current unassigned appointments. All cases have been routed to lawyers.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

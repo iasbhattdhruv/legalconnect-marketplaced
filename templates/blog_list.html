@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="card p-8 shadow-card">
+        <h1 class="text-4xl font-semibold text-white">Legal Blog</h1>
+        <p class="text-slate-400 mt-2">Insights, legal tips, and updates for clients and law professionals.</p>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+        {% for post in posts %}
+        <a href="/blog/{{ post.slug }}/" class="card p-6 shadow-card transition hover:-translate-y-1">
+            <h2 class="text-2xl font-semibold text-white">{{ post.title }}</h2>
+            <p class="text-slate-400 mt-3">{{ post.summary }}</p>
+            <div class="mt-4 text-sm text-slate-500">Published on {{ post.published_at|date:'j M Y' }}</div>
+        </a>
+        {% empty %}
+        <div class="card p-8 shadow-card text-slate-400">No blog posts published yet.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

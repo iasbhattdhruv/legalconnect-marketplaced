@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8 max-w-4xl mx-auto">
+    <div class="card p-8 shadow-card">
+        <p class="text-sm text-slate-400">Published on {{ post.published_at|date:'j M Y' }}</p>
+        <h1 class="text-4xl font-semibold text-white mt-4">{{ post.title }}</h1>
+        <p class="text-slate-300 mt-4">{{ post.summary }}</p>
+    </div>
+
+    <div class="card p-8 shadow-card">
+        <div class="prose prose-invert max-w-none text-slate-200">{{ post.content|linebreaks }}</div>
+    </div>
+
+    <a href="/blog/" class="btn-secondary">Back to Blog</a>
+</div>
+{% endblock %}

@@ -2,103 +2,115 @@
 
 {% block content %}
 
-<div class="max-w-2xl mx-auto py-16 px-6">
+<div class="flex min-h-[75vh] items-center justify-center py-10">
+    <div class="card w-full max-w-4xl p-8">
+        <div class="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+            <div>
+                <p class="text-sm uppercase tracking-[0.28em] text-blue-600">Create your account</p>
+                <h1 class="mt-4 text-4xl font-semibold text-slate-900">Start your legal journey</h1>
+                <p class="mt-3 text-slate-600">Register as a client, lawyer, or admin and begin booking consultations with trusted experts.</p>
+            </div>
 
-```
-<div class="bg-white p-10 rounded-3xl shadow-xl">
-
-    <h2 class="text-3xl font-bold mb-8 text-center">
-        Create Account
-    </h2>
-
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-
-        <!-- Username -->
-        <div class="mb-4">
-            <label class="block mb-2 font-semibold">Username</label>
-            <input type="text" name="username" required
-                   class="w-full border px-4 py-2 rounded-xl">
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <p class="text-sm font-semibold text-slate-700">Why LegalConnect?</p>
+                <ul class="mt-4 space-y-3 text-slate-600 text-sm">
+                    <li>• Easy lawyer discovery</li>
+                    <li>• Simple appointment booking</li>
+                    <li>• AI-guided support</li>
+                    <li>• Full admin management</li>
+                </ul>
+            </div>
         </div>
 
-        <!-- Email -->
-        <div class="mb-4">
-            <label class="block mb-2 font-semibold">Email</label>
-            <input type="email" name="email" required
-                   class="w-full border px-4 py-2 rounded-xl">
-        </div>
+        <form method="POST" enctype="multipart/form-data" class="mt-8 grid gap-6">
+            {% csrf_token %}
 
-        <!-- Password -->
-        <div class="mb-4">
-            <label class="block mb-2 font-semibold">Password</label>
-            <input type="password" name="password" required
-                   class="w-full border px-4 py-2 rounded-xl">
-        </div>
+            <div class="grid gap-6 md:grid-cols-2">
+                <div>
+                    <label class="mb-2 block text-sm font-semibold text-slate-700">Username</label>
+                    <input type="text" name="username" required class="input-field" />
+                </div>
 
-        <!-- User Type -->
-        <div class="mb-4">
-            <label class="block mb-2 font-semibold">Register As</label>
-            <select name="user_type" required
-                    class="w-full border px-4 py-2 rounded-xl">
-                <option value="client">Client</option>
-                <option value="lawyer">Lawyer</option>
-            </select>
-        </div>
+                <div>
+                    <label class="mb-2 block text-sm font-semibold text-slate-700">Email</label>
+                    <input type="email" name="email" required class="input-field" />
+                </div>
+            </div>
 
-        <!-- Gender -->
-        <div class="mb-4">
-            <label class="block mb-2 font-semibold">Gender</label>
-            <select name="gender"
-                    class="w-full border px-4 py-2 rounded-xl">
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-            </select>
-        </div>
+            <div class="grid gap-6 md:grid-cols-2">
+                <div>
+                    <label class="mb-2 block text-sm font-semibold text-slate-700">Password</label>
+                    <input type="password" name="password" required class="input-field" />
+                </div>
 
-        <!-- Birthdate -->
-        <div class="mb-4">
-            <label class="block mb-2 font-semibold">Birthdate</label>
-            <input type="date" name="birthdate"
-                   class="w-full border px-4 py-2 rounded-xl">
-        </div>
+                <div>
+                    <label class="mb-2 block text-sm font-semibold text-slate-700">Register As</label>
+                    <select name="user_type" required class="input-field" id="register-user-type">
+                        <option value="">Choose role</option>
+                        <option value="client">Client</option>
+                        <option value="lawyer">Lawyer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+            </div>
 
-        <!-- Profession -->
-        <div class="mb-4">
-            <label class="block mb-2 font-semibold">Profession</label>
-            <input type="text" name="profession"
-                   class="w-full border px-4 py-2 rounded-xl">
-        </div>
+            <div id="register-specialization-field" class="hidden">
+                <label class="mb-2 block text-sm font-semibold text-slate-700">Lawyer Specialization</label>
+                <select name="specialization" class="input-field">
+                    <option value="">Select specialization</option>
+                    <option value="Criminal Law">Criminal Law</option>
+                    <option value="Family Law">Family Law</option>
+                    <option value="Corporate Law">Corporate Law</option>
+                    <option value="Property Law">Property Law</option>
+                    <option value="Intellectual Property">Intellectual Property</option>
+                    <option value="Employment Law">Employment Law</option>
+                    <option value="Immigration Law">Immigration Law</option>
+                    <option value="Tax Law">Tax Law</option>
+                    <option value="Civil Rights">Civil Rights</option>
+                    <option value="General Legal">General Legal</option>
+                </select>
+            </div>
 
-        <!-- Passport Photo -->
-        <div class="mb-4">
-            <label class="block mb-2 font-semibold">
-                Passport Size Photo (Optional)
-            </label>
-            <input type="file" name="photo"
-                   class="w-full border px-4 py-2 rounded-xl">
-        </div>
+            <div class="grid gap-6 md:grid-cols-2">
+                <div>
+                    <label class="mb-2 block text-sm font-semibold text-slate-700">Gender</label>
+                    <select name="gender" class="input-field">
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-semibold text-slate-700">Birthdate</label>
+                    <input type="date" name="birthdate" class="input-field" />
+                </div>
+            </div>
 
-        <!-- Signature -->
-        <div class="mb-6">
-            <label class="block mb-2 font-semibold">
-                Signature (Optional)
-            </label>
-            <input type="file" name="signature"
-                   class="w-full border px-4 py-2 rounded-xl">
-        </div>
+            <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-700">Profession</label>
+                <input type="text" name="profession" class="input-field" placeholder="e.g. Business Consultant" />
+            </div>
 
-        <button type="submit"
-                class="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700">
-            Register
-        </button>
+            <div class="grid gap-6 md:grid-cols-2">
+                <div>
+                    <label class="mb-2 block text-sm font-semibold text-slate-700">Upload Photo</label>
+                    <input type="file" name="photo" class="input-field" />
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-semibold text-slate-700">Upload Signature</label>
+                    <input type="file" name="signature" class="input-field" />
+                </div>
+            </div>
 
-    </form>
+            <button type="submit" class="btn-primary w-full">Register Account</button>
+        </form>
 
-</div>
-```
-
+        <p class="mt-6 text-center text-slate-600">
+            Already registered?
+            <a href="/login/" class="text-blue-600 font-semibold hover:text-blue-800">Login here</a>
+        </p>
+    </div>
 </div>
 
 {% endblock %}

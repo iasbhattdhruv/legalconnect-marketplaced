@@ -2,84 +2,118 @@
 
 {% block content %}
 
-<div class="max-w-7xl mx-auto">
-
-    <!-- HEADER -->
-    <div class="mb-10 text-center">
-        <h2 class="text-4xl font-bold mb-2">
-            Find Expert Lawyers
-        </h2>
-        <p class="text-gray-400">
-            Connect with verified legal professionals
-        </p>
-    </div>
-
-    <!-- SEARCH BAR (future ready) -->
-    <div class="mb-10">
-        <input type="text" placeholder="Search by specialization..."
-               class="w-full bg-gray-900 border border-gray-700 px-5 py-3 rounded-xl focus:outline-none">
-    </div>
-
-    <!-- LAWYERS GRID -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-        {% for lawyer in lawyers %}
-
-        <div class="bg-gray-900 rounded-2xl p-6 hover:scale-105 transition duration-300 shadow-lg">
-
-            <!-- PROFILE IMAGE -->
-            <div class="flex justify-center mb-4">
-                {% if lawyer.photo %}
-                    <img src="{{ lawyer.photo.url }}" class="w-24 h-24 rounded-full object-cover border-2 border-blue-500">
-                {% else %}
-                    <div class="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center text-2xl">
-                        👨‍⚖️
-                    </div>
-                {% endif %}
+<div class="space-y-10">
+    <section class="card p-8 shadow-card bg-white">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="text-sm uppercase tracking-[0.24em] text-blue-600">Legal Experts</p>
+                <h1 class="text-4xl font-semibold text-slate-900">Browse Lawyers by Specialization</h1>
+                <p class="mt-3 text-slate-600 max-w-2xl">Search verified lawyers, compare expertise, and book consultations quickly.</p>
             </div>
 
-            <!-- NAME -->
-            <h3 class="text-xl font-bold text-center">
-                {{ lawyer.user.username }}
-            </h3>
-
-            <!-- SPECIALIZATION -->
-            <p class="text-center text-gray-400 mb-3">
-                {{ lawyer.specialization|default:"General Lawyer" }}
-            </p>
-
-            <!-- EXPERIENCE -->
-            <p class="text-center text-sm text-gray-500 mb-4">
-                {{ lawyer.experience|default:"0" }} years experience
-            </p>
-
-            <!-- ACTIONS -->
-            <div class="flex justify-center space-x-3">
-
-                <a href="/lawyers/{{ lawyer.id }}/"
-                   class="bg-gray-700 px-4 py-2 rounded-xl hover:bg-gray-600">
-                   View
-                </a>
-
-                <a href="/book/{{ lawyer.id }}/"
-                   class="bg-blue-600 px-4 py-2 rounded-xl hover:bg-blue-700">
-                   Book
-                </a>
-
-            </div>
-
+            <form method="GET" class="flex w-full max-w-md gap-3">
+                <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Describe your case or search specialization"
+                       class="input-field" />
+                <button type="submit" class="btn-primary">Search</button>
+            </form>
         </div>
 
+        <div class="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <a href="?q=criminal bail police case" class="btn-secondary">Criminal Law</a>
+            <a href="?q=divorce custody family dispute" class="btn-secondary">Family Law</a>
+            <a href="?q=company contract business compliance" class="btn-secondary">Corporate Law</a>
+            <a href="?q=property land tenant ownership" class="btn-secondary">Property Law</a>
+        </div>
+
+        {% if query_analysis %}
+            <div class="mt-6 rounded-3xl border border-blue-100 bg-blue-50 p-5">
+                <p class="text-sm font-semibold text-blue-700">Smart case analysis</p>
+                <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Category</p>
+                        <p class="font-semibold text-slate-900">{{ query_analysis.category }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Urgency</p>
+                        <p class="font-semibold text-slate-900">{{ query_analysis.urgency }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Confidence</p>
+                        <p class="font-semibold text-slate-900">{{ query_analysis.confidence }}%</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="grid gap-6 lg:grid-cols-3">
+        {% for item in recommendation_items %}
+            {% with lawyer=item.profile %}
+            <div class="card p-6 shadow-card bg-white hover:-translate-y-1 transition">
+                <div class="flex items-center gap-4">
+                    <div class="relative h-20 w-20 overflow-hidden rounded-3xl bg-slate-100">
+                        {% if lawyer.photo %}
+                            <img src="{{ lawyer.photo.url }}" alt="{{ lawyer.user.username }}" class="h-full w-full object-cover" />
+                        {% else %}
+                            <div class="flex h-full w-full items-center justify-center text-3xl">LC</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-slate-900">{{ lawyer.user.first_name|default:lawyer.user.username }}</h2>
+                        <p class="text-slate-500">{{ lawyer.specialization|default:'General Lawyer' }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-5 rounded-3xl border border-emerald-100 bg-emerald-50 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-sm font-semibold text-emerald-800">Recommended match</p>
+                        <span class="badge bg-emerald-100 text-emerald-800">{{ item.score }}%</span>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-600">
+                        {{ item.pending_count }} pending consultations, {{ item.accepted_count }} accepted consultations.
+                    </p>
+                </div>
+
+                <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Experience</p>
+                        <p class="mt-2 text-lg font-semibold text-slate-900">{{ lawyer.experience|default:'N/A' }} yrs</p>
+                    </div>
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Consultation</p>
+                        <p class="mt-2 text-lg font-semibold text-slate-900">{{ lawyer.display_fee }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Rating</p>
+                        <p class="mt-2 text-lg font-semibold text-slate-900">{{ item.rating }}</p>
+                    </div>
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Cases handled</p>
+                        <p class="mt-2 text-lg font-semibold text-slate-900">{{ lawyer.cases_handled }}</p>
+                    </div>
+                </div>
+
+                <p class="mt-5 text-slate-600 line-clamp-3">{{ lawyer.summary|default:'Experienced lawyer available for consultation.' }}</p>
+
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <a href="/lawyers/{{ lawyer.id }}/" class="btn-secondary flex-1 justify-center">View Profile</a>
+                    {% if not user.is_authenticated or user.profile.user_type != 'admin' %}
+                        <a href="/book/{{ lawyer.id }}/{% if query %}?issue={{ query|urlencode }}{% endif %}" class="btn-primary flex-1 justify-center">Book Now</a>
+                    {% else %}
+                        <a href="/admin/manage-appointments/" class="btn-secondary flex-1 justify-center">Manage Bookings</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endwith %}
         {% empty %}
-
-        <p class="text-gray-400 col-span-3 text-center">
-            No lawyers available.
-        </p>
-
+            <div class="card p-8 text-center text-slate-400">
+                No lawyers match your search right now. Try a different keyword or category.
+            </div>
         {% endfor %}
-
-    </div>
-
+    </section>
 </div>
 
 {% endblock %}

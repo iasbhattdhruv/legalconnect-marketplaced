@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="grid gap-10 lg:grid-cols-[0.65fr_0.35fr]">
+    <section class="space-y-6">
+        <div class="card p-8 shadow-card bg-emerald-100 border-emerald-200">
+            <div class="flex items-center gap-4">
+                <span class="text-5xl">✅</span>
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900">Appointment Confirmed!</h1>
+                    <p class="text-emerald-800 mt-2">Your booking has been submitted successfully.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-8 shadow-card bg-white">
+            <h2 class="text-xl font-semibold text-slate-900 mb-6">Booking Details</h2>
+            
+            <div class="space-y-4">
+                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                    <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Booking Ref</p>
+                    <p class="mt-2 text-lg font-mono font-semibold text-slate-900">#{{ appointment.id }}</p>
+                </div>
+
+                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                    <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Lawyer</p>
+                    <p class="mt-2 text-lg font-semibold text-slate-900">{{ lawyer.user.first_name|default:lawyer.user.username }} {{ lawyer.user.last_name }}</p>
+                    <p class="text-sm text-slate-600 mt-1">{{ lawyer.specialization|default:'General Legal Counsel' }}</p>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                        <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Date</p>
+                        <p class="mt-2 text-lg font-semibold text-slate-900">{{ appointment.appointment_date|date:'d M Y' }}</p>
+                    </div>
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                        <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Time</p>
+                        <p class="mt-2 text-lg font-semibold text-slate-900">{{ appointment.appointment_time|time:'H:i' }}</p>
+                    </div>
+                </div>
+
+                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                    <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Status</p>
+                    <p class="mt-2 text-lg font-semibold">
+                        <span class="badge bg-amber-100 text-amber-700">{{ appointment.status|title }}</span>
+                    </p>
+                </div>
+
+                {% if appointment.message %}
+                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                    <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Your Query</p>
+                    <p class="mt-2 text-slate-700 text-sm">{{ appointment.message }}</p>
+                </div>
+                {% endif %}
+
+                {% if appointment.mobile_number %}
+                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                    <p class="text-xs uppercase tracking-[0.24em] text-slate-500">WhatsApp Number</p>
+                    <p class="mt-2 text-lg font-semibold text-slate-900">{{ appointment.mobile_number }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card p-8 shadow-card border-sky-600/30 bg-sky-100">
+            <h2 class="text-xl font-semibold text-slate-900 mb-4">📋 What happens next?</h2>
+            <ol class="space-y-3 text-slate-700">
+                <li><span class="font-semibold">1. Pending review</span> — The lawyer will review your booking request.</li>
+                <li><span class="font-semibold">2. Accept or decline</span> — The lawyer will accept or reject within 24 hours.</li>
+                <li><span class="font-semibold">3. Confirmation</span> — You'll receive a confirmation when they accept.</li>
+                <li><span class="font-semibold">4. Meeting link</span> — The lawyer will share a meeting link or contact details.</li>
+            </ol>
+        </div>
+
+        <div class="card p-8 shadow-card border-rose-600/30 bg-rose-100">
+            <h2 class="text-xl font-semibold text-slate-900 mb-4">⚠️ Important</h2>
+            <ul class="space-y-2 text-slate-700 text-sm">
+                <li>• Check your email and WhatsApp for updates from the lawyer.</li>
+                <li>• The consultation fee (if any) will be confirmed by the lawyer.</li>
+                <li>• You can cancel the booking 12 hours before the appointment.</li>
+            </ul>
+        </div>
+    </section>
+
+    <aside class="space-y-6">
+        <div class="card p-6 shadow-card bg-white sticky top-24">
+            <h3 class="text-lg font-semibold text-slate-900 mb-4">Share on WhatsApp</h3>
+            
+            {% if appointment.mobile_number %}
+                <p class="text-slate-600 text-sm mb-4">Send your booking details to your WhatsApp contacts using the link below.</p>
+                
+                <a href="{{ whatsapp_link }}" target="_blank" class="btn-primary w-full justify-center mb-3 flex items-center gap-2">
+                    💬 Share on WhatsApp
+                </a>
+                <a href="/appointment/{{ appointment.id }}/whatsapp/" class="btn-secondary w-full justify-center text-sm">
+                    Direct WhatsApp Link
+                </a>
+            {% else %}
+                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-center">
+                    <p class="text-slate-600 text-sm mb-4">Add your WhatsApp number to share booking details.</p>
+                    <form method="POST" class="space-y-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="add_mobile" value="true" />
+                        <input type="tel" name="mobile_number" placeholder="+91 98765 43210" class="input-field text-sm" required />
+                        <button type="submit" class="btn-primary w-full text-sm">Add Number</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="card p-6 shadow-card bg-white">
+            <h3 class="text-lg font-semibold text-slate-900 mb-4">Lawyer Profile</h3>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="h-16 w-16 rounded-3xl bg-slate-100 grid place-items-center text-2xl flex-shrink-0">
+                    {% if lawyer.photo %}
+                        <img src="{{ lawyer.photo.url }}" alt="{{ lawyer.user.username }}" class="h-full w-full rounded-3xl object-cover" />
+                    {% else %}
+                        👨‍⚖️
+                    {% endif %}
+                </div>
+                <div>
+                    <p class="font-semibold text-slate-900">{{ lawyer.user.first_name|default:lawyer.user.username }}</p>
+                    <p class="text-sm text-slate-600">{{ lawyer.specialization }}</p>
+                    <p class="text-slate-700 text-sm mt-1">⭐ {{ lawyer.rating }}</p>
+                </div>
+            </div>
+
+            <div class="space-y-2 text-sm text-slate-400">
+                <p>• Experience: {{ lawyer.experience }} years</p>
+                <p>• Cases handled: {{ lawyer.cases_handled }}</p>
+                <p>• Fee: {{ lawyer.display_fee }}</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-3">
+            <a href="/dashboard/" class="btn-secondary w-full justify-center">Go to Dashboard</a>
+            <a href="/lawyers/" class="btn-secondary w-full justify-center">Browse More Lawyers</a>
+        </div>
+    </aside>
+</div>
+
+{% endblock %}

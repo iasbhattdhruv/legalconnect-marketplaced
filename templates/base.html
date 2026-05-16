@@ -2,54 +2,167 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LegalConnect</title>
 
     <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        body {
+        :root {
             font-family: 'Inter', sans-serif;
+            background: #eef8fb;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: #0f172a;
+            background: radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 28%),
+                        linear-gradient(180deg, #eef8fb 0%, #dbeaf2 100%);
+        }
+
+        .site-container {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 1.25rem;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, #0f766e 0%, #0891b2 100%);
+            color: #ffffff;
+            padding: 0.85rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+            transition: transform 0.2s ease, background 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(135deg, #0b7872 0%, #0d8fbb 100%);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.10), rgba(56, 189, 248, 0.10));
+            color: #0f172a;
+            padding: 0.85rem 1.4rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            border-color: rgba(15, 23, 42, 0.18);
+            background: rgba(15, 23, 42, 0.06);
+        }
+
+        .card {
+            border-radius: 1.75rem;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.32);
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+        }
+
+        .input-field {
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 1rem;
+            padding: 0.95rem 1rem;
+            color: #0f172a;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .input-field:focus {
+            border-color: #0f766e;
+            box-shadow: 0 0 0 6px rgba(14, 165, 233, 0.12);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 9999px;
+            background: rgba(14, 165, 233, 0.12);
+            padding: 0.5rem 0.9rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #0f172a;
         }
     </style>
 </head>
 
-<body class="bg-gray-950 text-white">
+<body>
+    <header class="border-b border-slate-200 bg-white/95 backdrop-blur-xl sticky top-0 z-50">
+        <div class="site-container flex flex-wrap items-center justify-between gap-4 py-4">
+            <a href="/" class="inline-flex items-center gap-3 text-xl font-semibold text-slate-900">
+                <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-lg shadow-lg shadow-blue-500/20">⚖</span>
+                LegalConnect
+            </a>
 
-    <!-- NAVBAR -->
-    <nav class="bg-gray-900 border-b border-gray-800 px-8 py-4 flex justify-between items-center">
+            <nav class="flex flex-wrap items-center gap-4 text-sm text-slate-600">
+                <a href="/" class="hover:text-slate-900">Home</a>
+                <a href="/dashboard/" class="hover:text-slate-900">Dashboard</a>
+                <a href="/lawyers/" class="hover:text-slate-900">Lawyers</a>
+                <a href="/blog/" class="hover:text-slate-900">Blog</a>
+                <a href="/ai-legal-assistant/" class="hover:text-slate-900">AI Assistant</a>
+                <a href="/ai-booking-chat/" class="btn-primary">Book with AI</a>
+                {% if user.is_authenticated %}
+                    {% if user.profile.user_type == 'lawyer' %}
+                        <a href="/lawyer-availability/" class="hover:text-slate-900">Availability</a>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                        <a href="/admin-dashboard/" class="btn-secondary">Admin Dashboard</a>
+                    {% endif %}
+                {% endif %}
+            </nav>
 
-        <h1 class="text-2xl font-bold text-blue-500">
-            ⚖ LegalConnect
-        </h1>
-
-        <div class="space-x-6">
-            <a href="/" class="hover:text-blue-400">Home</a>
-            <a href="/dashboard/" class="hover:text-blue-400">Dashboard</a>
-            <a href="/lawyers/" class="hover:text-blue-400">Find Lawyers</a>
-            <a href="/legal-ai/" class="hover:text-blue-400">AI Assistant</a>
-            <a href="/logout/" class="text-red-400 hover:text-red-500">Logout</a>
+            <div class="flex items-center gap-3">
+                {% if user.is_authenticated %}
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
+                        {{ request.user.username|default:'User' }}
+                    </div>
+                    <a href="/logout/" class="btn-secondary">Logout</a>
+                {% else %}
+                    <a href="/login/" class="btn-secondary">Login</a>
+                {% endif %}
+            </div>
         </div>
+    </header>
 
-    </nav>
-
-    <!-- MAIN CONTENT -->
-    <div class="min-h-screen px-6 py-10">
-
+    <main class="site-container py-10">
         {% if messages %}
-            {% for message in messages %}
-                <div class="mb-4 p-4 rounded-xl bg-blue-600">
-                    {{ message }}
-                </div>
-            {% endfor %}
+            <div class="space-y-3 mb-8">
+                {% for message in messages %}
+                    <div class="rounded-2xl border px-5 py-4 text-sm font-semibold shadow-sm
+                        {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800
+                        {% elif message.tags == 'error' %}border-rose-200 bg-rose-50 text-rose-800
+                        {% else %}border-blue-200 bg-blue-50 text-blue-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
         {% endif %}
 
         {% block content %}{% endblock %}
-
-    </div>
-
+    </main>
 </body>
 </html>

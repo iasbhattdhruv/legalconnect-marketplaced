@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card p-8 shadow-card max-w-4xl mx-auto">
+    <h1 class="text-3xl font-semibold text-white mb-4">Set Your Availability</h1>
+    <p class="text-slate-400 mb-6">Update your weekly schedule so clients can see when you're available.</p>
+
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+        <div class="grid gap-4 sm:grid-cols-2">
+            {% for day in days %}
+                <div class="rounded-3xl border border-slate-800 bg-slate-950/80 p-4">
+                    <p class="text-sm uppercase tracking-[0.24em] text-slate-400">{{ day|capfirst }}</p>
+                    <div class="mt-3 space-y-3">
+                        <input type="time" name="{{ day }}_start" class="input-field" placeholder="Start time" value="{% for slot in slots %}{% if slot.day == day %}{{ slot.start_time }}{% endif %}{% endfor %}">
+                        <input type="time" name="{{ day }}_end" class="input-field" placeholder="End time" value="{% for slot in slots %}{% if slot.day == day %}{{ slot.end_time }}{% endif %}{% endfor %}">
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn-primary">Save Availability</button>
+    </form>
+</div>
+{% endblock %}

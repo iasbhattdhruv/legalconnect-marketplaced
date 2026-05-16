@@ -2,34 +2,33 @@
 
 {% block content %}
 
-<div class="flex justify-center items-center min-h-screen">
-    <div class="bg-white p-10 rounded-2xl shadow-xl w-96">
-        <h2 class="text-3xl font-bold mb-6 text-center">Login</h2>
+<div class="flex min-h-[75vh] items-center justify-center">
+    <div class="card w-full max-w-md p-8">
+        <div class="mb-8 text-center">
+            <p class="text-sm uppercase tracking-[0.3em] text-sky-400">Welcome back</p>
+            <h1 class="mt-3 text-3xl font-semibold text-white">Sign in to LegalConnect</h1>
+            <p class="mt-2 text-slate-400">Access your dashboard, appointments, and lawyer bookings.</p>
+        </div>
 
-        <form method="POST">
+        <form method="POST" class="space-y-5">
             {% csrf_token %}
 
-            <input type="text" name="username"
-                   placeholder="Username"
-                   class="w-full mb-4 px-4 py-2 border rounded-lg"
-                   required>
+            <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-200">Username</label>
+                <input type="text" name="username" placeholder="Enter your username" class="input-field" required>
+            </div>
 
-            <input type="password" name="password"
-                   placeholder="Password"
-                   class="w-full mb-6 px-4 py-2 border rounded-lg"
-                   required>
+            <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-200">Password</label>
+                <input type="password" name="password" placeholder="Enter your password" class="input-field" required>
+            </div>
 
-            <button type="submit"
-                    class="w-full bg-blue-600 text-white py-2 rounded-lg">
-                Login
-            </button>
+            <button type="submit" class="btn-primary w-full">Login</button>
         </form>
 
-        <p class="mt-6 text-center">
+        <p class="mt-6 text-center text-slate-400">
             Don't have an account?
-            <a href="/register/" class="text-blue-600 font-semibold">
-                Register
-            </a>
+            <a href="/register/" class="text-sky-300 font-semibold hover:text-white">Create one</a>
         </p>
     </div>
 </div>

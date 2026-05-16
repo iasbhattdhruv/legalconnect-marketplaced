@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="card p-8 shadow-card bg-white">
+        <h1 class="text-3xl font-semibold text-slate-900 mb-4">Manage Appointments</h1>
+        <p class="text-slate-600 mb-6">View and manage all appointments on the platform.</p>
+
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-8">
+            <div class="rounded-3xl bg-slate-950 p-5 text-white shadow-xl">
+                <p class="text-sm text-slate-300">Pending</p>
+                <p class="mt-3 text-3xl font-semibold">{{ status_counts.pending|default:0 }}</p>
+            </div>
+            <div class="rounded-3xl bg-slate-950 p-5 text-white shadow-xl">
+                <p class="text-sm text-slate-300">Accepted</p>
+                <p class="mt-3 text-3xl font-semibold">{{ status_counts.accepted|default:0 }}</p>
+            </div>
+            <div class="rounded-3xl bg-slate-950 p-5 text-white shadow-xl">
+                <p class="text-sm text-slate-300">Rejected</p>
+                <p class="mt-3 text-3xl font-semibold">{{ status_counts.rejected|default:0 }}</p>
+            </div>
+            <div class="rounded-3xl bg-slate-950 p-5 text-white shadow-xl">
+                <p class="text-sm text-slate-300">Cancelled</p>
+                <p class="mt-3 text-3xl font-semibold">{{ status_counts.cancelled|default:0 }}</p>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            {% for appointment in appointments %}
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-900">Appointment #{{ appointment.id }}</h3>
+                        <p class="text-sm text-slate-500">
+                            {{ appointment.appointment_date }} at {{ appointment.appointment_time }} · {{ appointment.status|title }}
+                        </p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium
+                        {% if appointment.status == 'confirmed' %}bg-emerald-100 text-emerald-800{% elif appointment.status == 'pending' %}bg-amber-100 text-amber-800{% else %}bg-rose-100 text-rose-800{% endif %}">
+                        {{ appointment.status|title }}
+                    </span>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <p class="text-sm text-slate-500">Client</p>
+                        <p class="text-slate-900">{{ appointment.client.username }} ({{ appointment.client.email }})</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500">Lawyer</p>
+                        <p class="text-slate-900">
+                            {% if appointment.lawyer %}
+                                {{ appointment.lawyer.username }} ({{ appointment.lawyer.profile.specialization|default:'General' }})
+                            {% else %}
+                                <span class="text-rose-600">Not Assigned</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                {% if appointment.message %}
+                <div class="mb-4">
+                    <p class="text-sm text-slate-500">Message</p>
+                    <p class="text-slate-700">{{ appointment.message }}</p>
+                </div>
+                {% endif %}
+
+                <div class="flex flex-wrap gap-2">
+                    {% if appointment.status == 'pending' %}
+                    <form method="post" class="inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                        <input type="hidden" name="action" value="accept">
+                        <button type="submit" class="btn-primary text-sm">Accept</button>
+                    </form>
+                    <form method="post" class="inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                        <input type="hidden" name="action" value="reject">
+                        <button type="submit" class="btn-secondary text-sm">Reject</button>
+                    </form>
+                    {% endif %}
+
+                    {% if appointment.lawyer or appointment.status != 'pending' %}
+                    <form method="post" class="inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="btn-secondary text-sm">Delete</button>
+                    </form>
+                    {% endif %}
+
+                    {% if not appointment.lawyer %}
+                    <form method="post" class="inline flex gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                        <input type="hidden" name="action" value="assign_lawyer">
+                        <select name="lawyer_id" class="bg-slate-800 text-white px-3 py-1 rounded text-sm" required>
+                            <option value="">Select Lawyer</option>
+                            {% for lawyer in lawyers %}
+                            <option value="{{ lawyer.id }}">{{ lawyer.first_name }} {{ lawyer.last_name }} ({{ lawyer.profile.specialization }})</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn-primary text-sm">Assign</button>
+                    </form>
+                    {% endif %}
+
+                    <form method="post" class="inline flex gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                        <input type="hidden" name="action" value="reschedule">
+                        <input type="date" name="new_date" class="bg-slate-800 text-white px-3 py-1 rounded text-sm" required>
+                        <input type="time" name="new_time" class="bg-slate-800 text-white px-3 py-1 rounded text-sm" required>
+                        <button type="submit" class="btn-secondary text-sm">Reschedule</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-slate-400">No appointments found.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
